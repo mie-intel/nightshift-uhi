@@ -1,0 +1,89 @@
+---
+inclusion: always
+---
+
+# NightShift — tech context
+
+> Versions marked `TBD@Phase2` are pinned after `make install` (README §16). Items marked **(Gate 0)** are unverified until `docs/verification.md` — read installed lib source before coding against the API.
+
+## Stack (README §16)
+
+| Tool / lib | Use | Version |
+| --- | --- | --- |
+| Foundry (forge/cast/anvil) | build, test, scripts | TBD@Phase2 |
+| `Uniswap/v4-core` | PoolManager, types, `LPFeeLibrary`, `TickMath` | TBD@Phase2 |
+| `Uniswap/v4-periphery` | `HookMiner`, `LiquidityAmounts`, test routers | TBD@Phase2 |
+| `OpenZeppelin/uniswap-hooks` | `BaseHook`, `CurrencySettler` | TBD@Phase2 |
+| `OpenZeppelin/openzeppelin-contracts` (v5) | `ERC20`, `ReentrancyGuard`, `Ownable2Step`, `Math`, `SafeCast` | TBD@Phase2 |
+| `Reactive-Network/reactive-lib-omni` | `AbstractReactive`, `AbstractCallback`, `ISystemContract` | TBD@Phase2 |
+| `foundry-rs/forge-std` | tests | TBD@Phase2 |
+| Slither | static analysis | TBD@Phase2 |
+| Node ≥20, pnpm, TypeScript, `viem` | recorder, flow bot, scripts | TBD@Phase2 |
+| `better-sqlite3` / JSONL | recording store | TBD@Phase2 |
+| Next.js (App Router) + wagmi + viem + TanStack Query + Tailwind + Recharts | dashboard | TBD@Phase2 |
+
+Layout/remappings starting point: `uniswapfoundation/v4-template` (compare, don't blindly copy).
+
+## Compiler settings (README §16.1)
+
+- **Destination contracts** (hook, controller, vault, registry, libraries, mocks): `pragma solidity ^0.8.26;`, `evm_version = "cancun"` (transient storage required). `[profile.default]`.
+- **Reactive contract** (`NightShiftReactive`): `pragma solidity ^0.8.29;`, own `[profile.reactive]`. **(Gate 0.4)** confirm EVM version Reactive Omni supports (fallback: `cancun`).
+- Let Foundry auto-detect solc for deps. `fuzz runs 256`, `invariant runs 64`. `via_ir` only if needed.
+
+## Reactive Omni essentials — VERIFY against installed source (README §13.2, Gate 0.3)
+
+- `SYSTEM = ISystemContract(payable(0x8888888888888888888888888888888888888888))`.
+- Reactive: inherit `AbstractReactive`; `react(LogRecord memory log_) external onlySystem`.
+- Subscribe: `SYSTEM.subscribe(chainId, emitter, topic0, topic1, REACTIVE_IGNORE, REACTIVE_IGNORE)` — one subscription per criteria set (no OR inside a subscription).
+- Callback: `SYSTEM.requestCallbackV_1_0(CallbackConfiguration_V_1_0{chainId, recipient, gasLimit, payload})`; payload = `abi.encodeWithSelector(IController.onX.selector, address(0), ...)`.
+- **First-arg identity rule:** every callback's first param is `address` = `address(0)` on the reactive side, overwritten by the callback proxy with the reactive contract's identity. Destination authorizes on `msg.sender == callbackProxy` **and** `firstArg == expectedReactive`.
+- There is **no** `Callback` event and **no RVM** in Omni. Cron is a system topic (name/hash + interval **Gate 0.3**).
+- Funding/charging of reactive + callback contracts and debt repayment: **Gate 0.3** (REACT on mainnet, lREACT on Lasna).
+- Gas limits (defaults, tune): `onAnchor` 2.5M (loops vaults), `onRegime` 1.5M, `onReconcile` 2.5M, `onCorporateAction` 2.5M. Max limit/cost **Gate 0.6**.
+
+## Uniswap v4 essentials (README §9, §13.1)
+
+- Dynamic fee: pool created with `fee = LPFeeLibrary.DYNAMIC_FEE_FLAG`; `beforeSwap` returns `fee | LPFeeLibrary.OVERRIDE_FEE_FLAG`. Fee units = **pips** (1 000 000 = 100%).
+- Hook permissions used: `afterInitialize`, `beforeAddLiquidity`, `beforeSwap`, `afterSwap`. No return-delta flags.
+- Address mined with `HookMiner` for those flags; deployed via CREATE2 deployer `0x4e59b44847b379578588920cA78FbF26c0B4956C`.
+- `BaseHook` source (OZ uniswap-hooks vs v4-periphery): **Gate 0.5**.
+- Transient storage stashes per-swap `tickBefore`/`away` between `beforeSwap` and `afterSwap`.
+
+## Chains & addresses (README §18 — copy exactly; re-verify before deploy)
+
+### Reactive Network (§18.1)
+- Lasna (testnet): chainId `5318007`, RPC `https://lasna-rpc.rnk.dev/`, SYSTEM `0x8888888888888888888888888888888888888888`, explorer `https://lasna.reactscan.net`.
+- Mainnet: chainId `1597`, RPC `https://mainnet-rpc.rnk.dev/`, same SYSTEM, explorer `https://reactscan.net`.
+- lREACT faucet (Ethereum Sepolia): `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. **Never mix mainnet/testnet.**
+
+### Callback proxies (§18.2)
+Unichain Sepolia (1301) `0x775c9B990ADe401060B78D0e98684eEf8d2466C1` · Base Sepolia (84532) `0x476F44b11F5C942c58f4c8E3d0300E5710743585` · Ethereum Sepolia (11155111) `0xAa14d9Cd0f788Ca23d11805986C1d8bd035D23b4` · Robinhood Chain (4663) `0x476F44b11F5C942c58f4c8E3d0300E5710743585` · Ethereum (1) `0xFCE1F192F489c988392aBC16E91e359d540d94Fe` · BSC (56) `0xfc41eE9d3A836b41399BEcce83b06B3e5650f3BB` · Base (8453) `0xCc780DdE33f56f55dE778D42c930959374a4a068` · Unichain (130) `0x754120EC7a6eF81E4c5c835AA603C63Da64693E6` · Arbitrum (42161) `0xaee8d2deBaB5bE353bfec167C58a549923892e11`.
+Supported Reactive **testnets**: Base Sepolia, Ethereum Sepolia, Unichain Sepolia, Lasna. Robinhood Chain & BSC are **mainnet-only** on Reactive.
+
+### Uniswap v4 PoolManager (§18.3) — see README §18.3 for PositionManager/StateView/Quoter/Router
+- Unichain Sepolia (1301): `0x00b036b58a818b1bc34d502d3fe730db729e62ac`
+- Base Sepolia (84532): `0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408`
+- Sepolia (11155111): `0xE03A1074c86CFeDd5C142C4F04F1a1536e203543`
+- Robinhood Chain (4663): `0x8366a39cc670b4001a1121b8f6a443a643e40951`
+- Ethereum (1): `0x000000000004444c5dc75cB358380D2e3dE08A90`
+- BSC (56): `0x28e2ea090877bf75740558f6bfb36a5ffee9e9df`
+- Permit2 everywhere: `0x000000000022D473030F116dDEE9F6B43aC78BA3`. Test routers (PoolSwapTest/PoolModifyLiquidityTest): README §18.3.
+
+## Topology (README §18.5)
+
+**Testnet (primary build target):** Destination = Unichain Sepolia (pool+hook+controller+vaults+control pools). Origin = Ethereum Sepolia (MockIssuer + sibling pool A) + Base Sepolia (sibling pool B). Reactive = Lasna.
+**Mainnet showcase (stretch, demo tokens):** Destination = Robinhood Chain; witnesses = real Ondo issuer (Ethereum/BSC, if Gate 0.1) + real v4 pools; Reactive = Reactive Mainnet.
+
+## Commands (README §20)
+
+`make install · build · test · test-scenarios · coverage · slither · fmt · deploy-testnet · fund-reactive · e2e-testnet · record · report · app`
+
+## Env var names (README §19 — names only, no values)
+
+Keys: `DEPLOYER_PRIVATE_KEY`, `REACTIVE_PRIVATE_KEY`, `FLOWBOT_PRIVATE_KEY`. RPCs: `RPC_ETH_SEPOLIA`, `RPC_BASE_SEPOLIA`, `RPC_UNICHAIN_SEPOLIA`, `RPC_LASNA`, `RPC_ROBINHOOD`, `RPC_REACTIVE_MAINNET`, `RPC_ETHEREUM`, `RPC_BSC`. Explorers: `ETHERSCAN_API_KEY`, `BASESCAN_API_KEY`, `UNISCAN_API_KEY`. Reactive: `REACTIVE_SYSTEM`, `LREACT_FAUCET_SEPOLIA`, `CALLBACK_PROXY_UNICHAIN_SEPOLIA`, `CALLBACK_PROXY_ROBINHOOD`. Selector: `NETWORK` (testnet|mainnet).
+
+## Technical constraints
+
+- No upgradeable proxies. Vault never swaps (in-kind pro-rata flows only).
+- Everything in **destination tick space** (1 tick ≈ 1 bp). Fee units in pips.
+- Parameters live in `contracts/config/{testnet,mainnet}.json`, read via `vm.readFile` + `stdJson`; never hard-coded in logic. Deployed addresses → `deployments/{network}.json`.
