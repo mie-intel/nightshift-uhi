@@ -138,7 +138,6 @@ Know the field; cite it in the pitch.
 | **Chainlink 24/7**                                         | Weekend pricing for tokenized assets (extended-hours data + perp quotes).                                                                                      | A **price**, not a liquidity policy; signed; the hook still sleeps between trades.                                                                                                                                                               | Used as one low-weight witness inside the quorum (complement, not competitor).                                                                              |
 | **StablePair (Uniswap) + Ondo 24/7 mint/redeem**           | Route between Ondo and Robinhood tokens; Ondo can mint/redeem on weekends on Ethereum/BNB.                                                                     | Arbitrage path is slow and costly (swap → bridge → redeem); pools on Robinhood Chain still can't _see_ the anchor.                                                                                                                               | Treat these as the **strongest witnesses** and bring their information to the pool instantly.                                                               |
 | **Arrakis Price Convergence**                              | Aligns pools to a reference price at rebalance.                                                                                                                | Reference goes stale when the market is closed.                                                                                                                                                                                                  | Reference is the witnessed quorum, regime-aware.                                                                                                            |
-| **Veritas** (UHI9 Reactive track winner, by Dien Muhammad) | Reactive watches attestation events on another chain and ratchets a dilution score that sets LP fee protection.                                                | Different domain (content authenticity).                                                                                                                                                                                                         | **Design inspiration** (credited): trust ledger memory over signers; monotonic score; Reactive → score → hook fee pattern.                                  |
 
 **One-line differentiation:** Gapguard decides _who gets paid_ when the market is closed; NightShift keeps the market _working at a fair price_ when it is closed — and makes curators accountable for it.
 
@@ -153,7 +152,7 @@ Know the field; cite it in the pitch.
 ### 4.2 Four layers (+1)
 
 1. **Witness Quorum (Reactive).** A reactive contract on Reactive Network subscribes to events on several origin chains (issuer mint/redeem, sibling Uniswap pools, StablePair pools, optional oracle updates) and on the destination pool itself. It normalizes each observation into the destination pool's tick space, smooths it, weights it by how hard it is to fake, computes a weighted median **anchor tick**, and sends callbacks to the destination chain **between trades**.
-2. **Gap Risk Score (Veritas-inspired).** A 0–10 000 bps risk score built from time since the last open-market anchor, witness dispersion, pool-vs-anchor divergence and quorum staleness. While the market is closed it **can only ratchet up**; it resets at reconciliation.
+2. **Gap Risk Score.** A 0–10 000 bps risk score built from time since the last open-market anchor, witness dispersion, pool-vs-anchor divergence and quorum staleness. While the market is closed it **can only ratchet up**; it resets at reconciliation.
 3. **Curator marketplace.** Curators deploy vaults with **per-regime mandates** (open / closed / reopen): how closely to follow the anchor, range widths, risk-scaled widening, recenter thresholds. Mandate changes are timelocked. Depositors pick a curator and can migrate between curators of the same pool.
 4. **Reopen reconciliation.** The first regular-session witnessed price (the _open tick_) scores each vault's closed-market performance against HODL. Performance fees are paid only on positive alpha above a high-water mark. Results form an on-chain leaderboard.
 5. **(+1) Corporate actions.** Issuer multiplier/split events are subscribed to and applied as a controlled halt + anchor rescale + forced vault recenter.
@@ -382,7 +381,7 @@ On `CLOSED → REOPEN_PENDING`, the reactive contract opens an **open window** (
 
 `raw = Σ weight_i · component_i` (bps, 0–10 000).
 
-### 8.2 Ratchet (the Veritas rule)
+### 8.2 Ratchet (closed-market risk only grows)
 
 - In `CLOSED`: `risk = max(risk, raw)` — **trades in our own pool can never lower it.**
 - In `OPEN`: `risk = raw` (no ratchet).
@@ -1049,7 +1048,7 @@ Demo video (≤ 5 min) script lives in `docs/demo-script.md`:
 4. Repair swap served at fair price; away swap pays and is capped.
 5. Reopen → reconcile → leaderboard.
 6. Three-pool comparison chart.
-7. Prior art slide (Gapguard, Maestro, Chainlink 24/7, StablePair, Veritas credit).
+7. Prior art slide (Gapguard, Maestro, Chainlink 24/7, StablePair).
 
 ---
 
@@ -1078,7 +1077,6 @@ Demo video (≤ 5 min) script lives in `docs/demo-script.md`:
 | G0.5 | Does the template's `BaseHook` come from OZ uniswap-hooks or v4-periphery?                                                                                                                | Inspect template                                                                      | Use whichever compiles cleanly                                   |
 | G0.6 | Callback gas limit maximum and cost per callback on Lasna/mainnet                                                                                                                         | Docs + measurement                                                                    | Split `onAnchor` into per-vault callbacks                        |
 | G0.7 | Activity of real witnesses on weekends (are there enough events?)                                                                                                                         | Query recent weekend logs of candidate pools                                          | Lower `minQuorumWeight`, longer `maxAgeClosed`                   |
-| G0.8 | Permission to borrow Veritas principles; Dien joining the team                                                                                                                            | Ask Dien                                                                              | Credit only                                                      |
 
 Assumptions to state in the pitch: stablecoin parity across witness quotes; demo tokens on mainnet; destination flow scripted in demos.
 
@@ -1112,7 +1110,6 @@ Assumptions to state in the pitch: stablecoin parity across witness quotes; demo
 
 **Credits**
 
-- **Veritas** (Dien Muhammad, UGM, UHI9 Reactive track winner) — design principles: trust ledger memory over signers, monotonic risk score, Reactive → score → hook pattern.
 - **Gapguard** (Bytethebuilder, MIT) — closed-market fee ideas (midpoint drift pricing, move cap) and calendar rules; prior art.
 - **Maestro** (UHI9) — Reactive-driven re-centering between trades; prior art.
 - **horsefacts/trading-days** (MIT) — NYSE calendar reference.
@@ -1123,7 +1120,7 @@ Assumptions to state in the pitch: stablecoin parity across witness quotes; demo
 - UHI dates and sponsors: https://atrium.academy/sponsors
 - Request for Hooks: https://atriumacademy.notion.site/atrium-academy-request-for-hooks
 - Reactive Circuit (judging bar): https://blog.reactive.network/reactive-circuit-incentive-program-for-working-integrations/
-- Reactive UHI9 first wave (Veritas, Maestro): https://blog.reactive.network/reactive-contracts-uniswap-hooks-the-first-wave-from-the-uhi9-hookathon/
+- Reactive UHI9 first wave (Maestro): https://blog.reactive.network/reactive-contracts-uniswap-hooks-the-first-wave-from-the-uhi9-hookathon/
 - Reactive × Robinhood: https://blog.reactive.network/reactivexrobinhood/
 - Reactive docs (Omni getting started, origins & destinations, reactive library): https://dev.reactive.network/ · https://dev.reactive.network/origins-and-destinations · https://dev.reactive.network/reactive-library
 - Uniswap v4 deployments: https://developers.uniswap.org/docs/protocols/v4/deployments

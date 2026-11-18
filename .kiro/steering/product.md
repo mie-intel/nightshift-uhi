@@ -16,7 +16,7 @@ inclusion: always
 ## Four layers +1 (README §4.2)
 
 1. **Witness Quorum (Reactive).** Reactive contract subscribes to origin-chain events + the destination pool; normalizes to dest tick space, EWMA-smooths, weights by hard-to-fake-ness, computes weighted-median **anchor tick**, callbacks between trades.
-2. **Gap Risk Score (Veritas-inspired).** 0–10 000 bps risk from time-since-open-anchor, dispersion, pool-vs-anchor divergence, staleness. While CLOSED it only **ratchets up**; resets at reconcile.
+2. **Gap Risk Score.** 0–10 000 bps risk from time-since-open-anchor, dispersion, pool-vs-anchor divergence, staleness. While CLOSED it only **ratchets up**; resets at reconcile.
 3. **Curator marketplace.** Curators deploy vaults with per-regime mandates (open/closed/reopen); mandate changes timelocked; depositors pick a curator and migrate.
 4. **Reopen reconciliation.** First regular-session witnessed price (open tick) scores each vault vs HODL; perf fee only on positive alpha above HWM; on-chain leaderboard.
 5. **(+1) Corporate actions.** Issuer multiplier/split events → controlled halt + anchor rescale + forced vault recenter.
@@ -62,7 +62,6 @@ Not an oracle product (we don't publish prices for others). No real securities i
 - **Maestro** (UHI9, Reactive): reactive re-centers a pool from a single signed Pyth feed; no regime/curator layer.
 - **Chainlink 24/7**: a price, not a liquidity policy — used as one low-weight witness.
 - **StablePair + Ondo 24/7 mint/redeem**: arb path slow/costly; pools still can't see the anchor → treat as strongest witnesses.
-- **Veritas** (UHI9 winner, Dien Muhammad): credited design inspiration — trust-ledger memory over signers, monotonic score, Reactive → score → hook fee.
 
 **One-line differentiation:** Gapguard decides who gets paid when the market is closed; NightShift keeps the market working at a fair price when it is closed — and makes curators accountable for it.
 

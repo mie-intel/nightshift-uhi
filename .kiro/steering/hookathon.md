@@ -37,7 +37,6 @@ Gapguard decides who gets paid when the market is closed; NightShift keeps the m
 1. Problem in 30 s (HIMS case, stranded anchor). 2. Close transition `onRegime(CLOSED)` in Reactscan + dest explorer. 3. Witness move on another chain → `onAnchor` → vault recenters **with no destination trade**. 4. Repair swap served at fair price; away swap pays + capped. 5. Reopen → reconcile → leaderboard. 6. Three-pool comparison chart. 7. Prior-art slide.
 
 ## Credits that MUST appear (README §27)
-- **Veritas** (Dien Muhammad, UGM, UHI9 Reactive winner) — design principles (trust-ledger memory, monotonic score, Reactive→score→hook). 🛑 confirm permission (Gate 0.8).
 - **Gapguard** (Bytethebuilder, MIT) — closed-market fee ideas + calendar rules.
 - **Maestro** (UHI9) — Reactive-driven re-centering.
 - **horsefacts/trading-days** (MIT) — NYSE calendar reference.

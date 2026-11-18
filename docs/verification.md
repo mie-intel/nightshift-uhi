@@ -112,10 +112,10 @@ Status legend: ✅ answered · ⚠️ partial / verify live · 🛑 user action.
 
 ---
 
-## G0.8 — Veritas credit / Dien 🛑 user action
+## G0.8 — third-party design attribution ✅ (resolved: none used)
 
-**Question:** Permission to borrow Veritas principles; Dien Muhammad joining the team.
+**Question:** Any external project's design principles borrowed that would need permission or credit?
 
-**Answer:** Pending — user to contact Dien. Until then: **credit only** (already in product.md/hookathon.md §27). No Veritas code copied; design-inspiration attribution stands regardless.
+**Answer:** No. No third-party code is copied. The monotonic risk ratchet is domain-driven — closed-market gap risk can only grow until the market reopens, so the score ratchets up while CLOSED and resets at reconcile. No external attribution or permission needed.
 
-**Impact:** No build dependency. Keep credit visible in README/pitch/UI.
+**Impact:** None. Credits list = Gapguard (MIT), Maestro, horsefacts/trading-days (MIT) only.

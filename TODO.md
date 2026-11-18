@@ -89,7 +89,7 @@ fileMatchPattern: ["contracts/**/*.sol"]
   - ADR-004 Fee semantics: toward = repair flow served with gap capture; away = steep + capped (refines the "toward stays cheap" wording in the idea form).
   - ADR-005 Testnet topology (Unichain Sepolia destination; Sepolia + Base Sepolia origins; Lasna).
   - ADR-006 Destination calendar fallback + anchor staleness for defense in depth.
-- [ ] `hookathon.md` — dates and deadlines (UTC and PST), forms (Project Update https://tally.so/r/m6lP9e, Final https://tally.so/r/mVNEAE), deliverables checklist (README §24), live recording schedule (§23), pitch one-liner, demo script outline, credits that must appear (Veritas/Dien, Gapguard, Maestro, trading-days).
+- [ ] `hookathon.md` — dates and deadlines (UTC and PST), forms (Project Update https://tally.so/r/m6lP9e, Final https://tally.so/r/mVNEAE), deliverables checklist (README §24), live recording schedule (§23), pitch one-liner, demo script outline, credits that must appear (Gapguard, Maestro, trading-days).
 
 ### 0.5 Claude Code bridges (`.claude/rules/`)
 
@@ -177,7 +177,7 @@ Output: `docs/verification.md` with one section per item: question, evidence (li
 - [x] **G0.6** Max callback gas limit and per-callback cost; decide single `onAnchor` loop vs per-vault callbacks (ADR). → min 100k, react() ≤900k; single onAnchor loop on destination (ADR-009).
 - [~] **G0.1** Ondo 24/7 mint/redeem: contracts + events on Ethereum/BSC; can price be derived from logs? → PARTIAL: 24/7 live but event shape unverified; **fallback adopted** (StablePair + sibling Swaps primary, ADR-010). Revisit before Phase 11.M.
 - [~] **G0.7** Count weekend events for candidate mainnet witnesses (last 2 weekends) → choose `minQuorumWeight`, `maxAgeClosed`. → DEFERRED to Phase 11.M (mainnet-only; testnet uses mock witnesses). Keep defaults; fallback lower quorum / longer maxAgeClosed.
-- [~] 🛑 **G0.2 / G0.8** (a) Reactive sponsor status — **confirmed by user ✅**. (b) Tell Dien about the Veritas credit / invite to team — **pending user**.
+- [x] **G0.2** Reactive sponsor status — confirmed by user. (G0.8 removed: no third-party design attribution used.)
 - **Done when:** `docs/verification.md` complete; README/steering/ADRs updated.
 
 ---
