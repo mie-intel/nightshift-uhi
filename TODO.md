@@ -175,8 +175,8 @@ Output: `docs/verification.md` with one section per item: question, evidence (li
 - [x] **G0.4** EVM version to use for Lasna/mainnet deployments. → `cancun` (verify by Lasna deploy, Phase 4).
 - [x] **G0.5** Which `BaseHook` to use; record exact import paths. → OZ uniswap-hooks `BaseOverrideFee`.
 - [x] **G0.6** Max callback gas limit and per-callback cost; decide single `onAnchor` loop vs per-vault callbacks (ADR). → min 100k, react() ≤900k; single onAnchor loop on destination (ADR-009).
-- [~] **G0.1** Ondo 24/7 mint/redeem: contracts + events on Ethereum/BSC; can price be derived from logs? → PARTIAL: 24/7 live but event shape unverified; **fallback adopted** (StablePair + sibling Swaps primary, ADR-010). Revisit before Phase 11.M.
-- [~] **G0.7** Count weekend events for candidate mainnet witnesses (last 2 weekends) → choose `minQuorumWeight`, `maxAgeClosed`. → DEFERRED to Phase 11.M (mainnet-only; testnet uses mock witnesses). Keep defaults; fallback lower quorum / longer maxAgeClosed.
+- [x] **G0.1** N/A for our scope — testnet-only, issuer = MockIssuer (real Ondo is mainnet; ADR-011).
+- [x] **G0.7** N/A for our scope — real weekend witnesses were a mainnet-showcase concern; testnet uses flow bot (ADR-011).
 - [x] **G0.2** Reactive sponsor status — confirmed by user. (G0.8 removed: no third-party design attribution used.)
 - **Done when:** `docs/verification.md` complete; README/steering/ADRs updated.
 
@@ -296,7 +296,7 @@ Smallest end-to-end loop on real testnets, before building full features.
 - [ ] Export recordings to `docs/recordings/live-2026-11-26_30/`.
 - **Done when:** regime callbacks for every transition, at least one news-driven anchor move with vault recenter **without a destination trade**, and one reconciliation with leaderboard update are all in explorers and in the export.
 
-### 11.M Mainnet showcase (stretch)
+### 11.M Mainnet showcase — OUT OF SCOPE (testnet-only, ADR-011)
 
 - [ ] 🛑 ASK USER before any step here (real funds, mainnet keys).
 - [ ] Choose ticker(s) with active witnesses (from G0.1/G0.7); deploy demo tokens + NightShift on Robinhood Chain; reactive on Reactive Mainnet with real witnesses (Ethereum/BSC/Robinhood pools, issuer events if available).

@@ -76,7 +76,9 @@ Status legend: ✅ answered · ⚠️ partial / verify live · 🛑 user action.
 
 ---
 
-## G0.1 — Ondo 24/7 mint/redeem events ⚠️ partial → fallback
+## G0.1 — Ondo 24/7 mint/redeem events ✅ N/A (testnet-only, ADR-011)
+
+> Scope decision (ADR-011): testnet-only; issuer witness is always `MockIssuer`. Real Ondo is mainnet and cannot be witnessed from a Lasna reactive contract. The analysis below is retained for reference / any future mainnet work.
 
 **Question:** Do Ondo's 24/7 mint/redeem contracts on Ethereum/BNB emit events with share **and** quote amounts? Which contracts/events?
 
@@ -88,7 +90,9 @@ Status legend: ✅ answered · ⚠️ partial / verify live · 🛑 user action.
 
 ---
 
-## G0.7 — weekend witness activity ⚠️ deferred to mainnet showcase
+## G0.7 — weekend witness activity ✅ N/A (testnet-only, ADR-011)
+
+> Mainnet-showcase concern only; out of scope. Testnet witness density is produced by the flow bot. Retained for reference.
 
 **Question:** Enough weekend events for candidate mainnet witnesses → choose `minQuorumWeight`, `maxAgeClosed`.
 

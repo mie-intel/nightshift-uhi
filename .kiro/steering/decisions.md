@@ -66,3 +66,9 @@ inclusion: manual
 - **Context:** Ondo 24/7 mint/redeem is live on Ethereum/BNB but uses off-chain signed attestations; no verified on-chain event emitting share AND quote amounts was found in public sources.
 - **Decision:** For the mainnet showcase (Phase 11.M, stretch), use StablePair + sibling v4 `Swap` events as primary witnesses. Wire a real Ondo issuer event only after confirming its ABI on Etherscan. Testnet uses `MockIssuer` regardless.
 - **Consequences:** No build dependency on an unverified ABI. Revisit before 11.M: find GM token/manager contracts, read logs, compute `offsetTicks`. Revise this ADR if a usable event is confirmed.
+
+## ADR-011 Testnet-only scope; Ondo = MockIssuer; mainnet showcase out of scope
+- **Date:** 2026-11-18 · **Status:** Accepted (supersedes ADR-010 for our scope)
+- **Context:** Real Ondo mint/redeem is mainnet-only (Ethereum/BNB). Reactive forbids mixing mainnet and testnet, and our reactive contract runs on Lasna (testnet), so a Lasna reactive contract cannot witness real Ondo events. User chose to focus on testnet only.
+- **Decision:** Build, demo and submit entirely on the testnet topology (ADR-005). The issuer witness is always `MockIssuer` (`Minted(address,uint256,uint256)`) on Ethereum Sepolia; price moves driven by the flow bot. **Phase 11.M (mainnet showcase) is out of scope.** G0.1 and G0.7 are N/A (both were mainnet-showcase concerns).
+- **Consequences:** Reactive is unchanged and still core — it still witnesses multiple testnet origins (Eth Sepolia + Base Sepolia), computes on Lasna, and callbacks to Unichain Sepolia between trades; Gate 1 is still a real Lasna→Unichain-Sepolia callback. Only the issuer *data source* is mocked (unavoidable on testnet), not Reactive. No mainnet keys/funds, no Ondo-ABI work. `mainnet.json` kept as a stub only.

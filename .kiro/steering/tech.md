@@ -73,7 +73,7 @@ Supported Reactive **testnets**: Base Sepolia, Ethereum Sepolia, Unichain Sepoli
 ## Topology (README §18.5)
 
 **Testnet (primary build target):** Destination = Unichain Sepolia (pool+hook+controller+vaults+control pools). Origin = Ethereum Sepolia (MockIssuer + sibling pool A) + Base Sepolia (sibling pool B). Reactive = Lasna.
-**Mainnet showcase (stretch, demo tokens):** Destination = Robinhood Chain; witnesses = real Ondo issuer (Ethereum/BSC, if Gate 0.1) + real v4 pools; Reactive = Reactive Mainnet.
+**Mainnet showcase: OUT OF SCOPE** (ADR-011 — testnet-only; real Ondo is mainnet and can't be witnessed from Lasna). Issuer witness is always `MockIssuer` on Eth Sepolia.
 
 ## Commands (README §20)
 
