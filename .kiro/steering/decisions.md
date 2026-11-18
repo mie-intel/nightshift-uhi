@@ -42,3 +42,27 @@ inclusion: manual
 - **Context:** Reactive could be late or down; the pool must not trust stale state.
 - **Decision:** Compile `NyseCalendar` into both reactive and controller; permissionless `syncRegime`/`forceReconcile`; hook stale-anchor fallback degrades to maximal (Gapguard-like) protection.
 - **Consequences:** System degrades safely without Reactive, at the cost of duplicated calendar logic (kept identical).
+
+## ADR-007 Cron100 for regime/heartbeat timing
+- **Date:** 2026-11-18 · **Status:** Accepted (Gate 0.3)
+- **Context:** Omni Cron lives on legacy sys contract `0x00..fffFfF` with topics Cron1/10/100/1000/10000 (~1s/10s/2min/17min/3h on ~1s blocks). Cron bills on every tick regardless of `react()` work. README guessed "~100 blocks ≈ 100 s".
+- **Decision:** Subscribe to **Cron100** (topic0 `0xb49937fb…1503c70`, ~2 min) for regime-transition detection, heartbeat, open-window close and reconcile timeout. Evaluate all time-driven logic off `block.timestamp` in `react()`.
+- **Consequences:** ~2 min granularity is fine for NYSE transitions (14:30/18:00/21:00 UTC). ~720 billed ticks/day — acceptable; if cost bites, switch to Cron1000 (~17 min) and accept coarser transition timing.
+
+## ADR-008 Callback auth uses BOTH lib modifiers
+- **Date:** 2026-11-18 · **Status:** Accepted (Gate 0.3/E)
+- **Context:** `AbstractCallback.onlyCallbackSender` only checks the injected first-arg == `_CALLBACK_SENDER`; it does NOT check `msg.sender`. `_CALLBACK_SENDER` is public, so a direct caller could spoof it. Docs say "use both, always."
+- **Decision:** Every Controller callback carries `onlyServiceProvider onlyCallbackSender(reactive_)`: proxy-is-caller AND injected identity. Constructor `AbstractCallback(callbackProxy, expectedReactive)`.
+- **Consequences:** Matches README §15 threat "forged callbacks". A test asserts a direct call (correct first arg, wrong msg.sender) reverts `NotAuthorized`.
+
+## ADR-009 Single `onAnchor` loops vaults on the destination; `react()` ≤ 900k
+- **Date:** 2026-11-18 · **Status:** Accepted (Gate 0.6)
+- **Context:** Reactive caps a reactive transaction (`react()`) at 900 000 gas. Callback min 100k; destination callback gas bounded by the destination block, not the 900k cap. README proposed `onAnchor` looping all vaults.
+- **Decision:** Keep witness quorum/risk math inside `react()` under 900k (lean median/EWMA, `MAX_SOURCES=16`); do the per-vault loop in the **destination** `onAnchor` callback with `try/catch`, `gasLimit` 2.5M (8-vault cap). 
+- **Consequences:** `react()` gas is a hard design budget — profile it in Phase 6. Fallback: if 8 vaults exceed a safe destination gas, split into per-vault callbacks.
+
+## ADR-010 Ondo issuer events are a bonus; StablePair + sibling Swaps are primary
+- **Date:** 2026-11-18 · **Status:** Accepted (Gate 0.1, provisional)
+- **Context:** Ondo 24/7 mint/redeem is live on Ethereum/BNB but uses off-chain signed attestations; no verified on-chain event emitting share AND quote amounts was found in public sources.
+- **Decision:** For the mainnet showcase (Phase 11.M, stretch), use StablePair + sibling v4 `Swap` events as primary witnesses. Wire a real Ondo issuer event only after confirming its ABI on Etherscan. Testnet uses `MockIssuer` regardless.
+- **Consequences:** No build dependency on an unverified ABI. Revisit before 11.M: find GM token/manager contracts, read logs, compute `offsetTicks`. Revise this ADR if a usable event is confirmed.

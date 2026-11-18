@@ -5,18 +5,19 @@ fileMatchPattern: ["contracts/src/reactive/**", "contracts/src/controller/**", "
 
 # Reactive + Controller spec (README §7, §8, §13.2, §14, §18.1–18.2)
 
-> **Read the installed `reactive-lib-omni` source before coding (Gate 0.3).** API names below are from README and may have drifted.
+> API below **verified** against `reactive-lib-omni` source + docs (docs/verification.md G0.3). Re-read the installed source at Phase 2 pin time in case of version drift.
 
 ## The rule that defines success (README §1.3)
 A callback must **actually fire**: reactive tx on Lasna/mainnet **+** the destination callback tx, both visible in explorers. Gate 1 is the first milestone. Never mix Lasna and mainnet.
 
-## Callback authentication (README §13.1, §15)
-- Controller inherits `AbstractCallback`; constructor takes the chain's **callback proxy** + the expected **reactive identity**.
-- Every callback's **first param is `address`** = `address(0)` reactive-side, overwritten by the proxy with the reactive identity. Authorize: `msg.sender == callbackProxy` **and** `firstArg == expectedReactive` (use lib modifiers if present).
+## Callback authentication (VERIFIED G0.3/E — use BOTH modifiers, always)
+- Controller `is AbstractCallback`; constructor `AbstractCallback(callbackProxy_, expectedReactive_)` (both immutable).
+- Each callback: `function onX(address reactive_, ...) external onlyServiceProvider onlyCallbackSender(reactive_)`. `onlyServiceProvider` = `msg.sender == callbackProxy`; `onlyCallbackSender` = injected first-arg `== _CALLBACK_SENDER`. Omitting `onlyServiceProvider` lets anyone call directly with a spoofed first arg — never omit it.
 
 ## Reactive contract (`NightShiftReactive`, ^0.8.29)
-- `SYSTEM = ISystemContract(payable(0x8888…8888))`; `react(LogRecord memory log_) external onlySystem`.
-- Subscriptions: one per witness source + destination pool `SELF` Swap + issuer action + one Cron topic (~100 blocks; name/hash Gate 0.3). `SYSTEM.subscribe(chainId, emitter, topic0, topic1, REACTIVE_IGNORE, REACTIVE_IGNORE)` — no OR inside a subscription.
+- `SYSTEM = ISystemContract(payable(0x8888…8888))`; `react(IReactive.LogRecord calldata log_) external onlySystem` (**calldata**). `REACTIVE_IGNORE = 0xa65f96fc…2313ad`.
+- Subscriptions: one per witness source + destination pool `SELF` Swap + issuer action + **Cron100** (legacy sys `0x00..fffFfF`, topic0 `0xb49937fb…1503c70`, ~2 min; bills every tick). `subscribe(chainId, contract, topic0, topic1, topic2, topic3)` — **6 args**, unused topics = `REACTIVE_IGNORE`; no OR in a subscription.
+- **`react()` must fit in 900 000 gas** (Reactive-tx cap): keep decode + EWMA + weighted median (`MAX_SOURCES=16`) + risk lean; no vault loop here. Fund via `SYSTEM.depositTo(this){value}`; expose `coverDebt()`; any debt blocks execution.
 - `requestCallbackV_1_0(CallbackConfiguration_V_1_0{chainId, recipient: controller, gasLimit, payload})`, payload = `abi.encodeWithSelector(IController.onX.selector, address(0), ...)`.
 - Admin (owner): `addSource`, `disableSource`, `setParams`, `setController`, `pause`. Funded with REACT (lREACT on Lasna); funding/charge/debt mechanism Gate 0.3.
 - Gas (defaults, tune): onAnchor 2.5M, onRegime 1.5M, onReconcile 2.5M, onCorporateAction 2.5M. Max/cost Gate 0.6 (fallback: per-vault callbacks).

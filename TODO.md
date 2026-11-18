@@ -171,13 +171,13 @@ fileMatchPattern: ["contracts/**/*.sol"]
 
 Output: `docs/verification.md` with one section per item: question, evidence (links, ABI snippets, tx hashes), answer, impact.
 
-- [ ] **G0.3 (blocking)** Install `reactive-lib-omni` (can be done in a scratch Foundry project if Phase 2 isn't done) and document: `AbstractReactive` API, `onlySystem`, `LogRecord` fields, `ISystemContract.subscribe` signature, `REACTIVE_IGNORE`, Cron topic names + hashes and intervals, `AbstractCallback` constructor + modifiers on the destination, how reactive and callback contracts are funded/charged (and how debt is repaid). Update `tech.md` + `reactive.md`.
-- [ ] **G0.4** EVM version to use for Lasna/mainnet deployments.
-- [ ] **G0.5** Which `BaseHook` to use; record exact import paths.
-- [ ] **G0.6** Max callback gas limit and per-callback cost; decide single `onAnchor` loop vs per-vault callbacks (ADR).
-- [ ] **G0.1** Ondo 24/7 mint/redeem: contracts + events on Ethereum/BSC; can price be derived from logs? If yes, write source configs for 1–2 tickers (e.g. NVDA, SPY) with `offsetTicks`. If no, ADR: StablePair + sibling pools are primary.
-- [ ] **G0.7** Count weekend events for candidate mainnet witnesses (last 2 weekends) → choose `minQuorumWeight`, `maxAgeClosed`.
-- [ ] 🛑 **G0.2 / G0.8** ASK USER to (a) confirm Reactive sponsor status in UHI Discord, (b) tell Dien about the Veritas credit / invite to team.
+- [x] **G0.3 (blocking)** Install `reactive-lib-omni` (can be done in a scratch Foundry project if Phase 2 isn't done) and document: `AbstractReactive` API, `onlySystem`, `LogRecord` fields, `ISystemContract.subscribe` signature, `REACTIVE_IGNORE`, Cron topic names + hashes and intervals, `AbstractCallback` constructor + modifiers on the destination, how reactive and callback contracts are funded/charged (and how debt is repaid). Update `tech.md` + `reactive.md`.
+- [x] **G0.4** EVM version to use for Lasna/mainnet deployments. → `cancun` (verify by Lasna deploy, Phase 4).
+- [x] **G0.5** Which `BaseHook` to use; record exact import paths. → OZ uniswap-hooks `BaseOverrideFee`.
+- [x] **G0.6** Max callback gas limit and per-callback cost; decide single `onAnchor` loop vs per-vault callbacks (ADR). → min 100k, react() ≤900k; single onAnchor loop on destination (ADR-009).
+- [~] **G0.1** Ondo 24/7 mint/redeem: contracts + events on Ethereum/BSC; can price be derived from logs? → PARTIAL: 24/7 live but event shape unverified; **fallback adopted** (StablePair + sibling Swaps primary, ADR-010). Revisit before Phase 11.M.
+- [~] **G0.7** Count weekend events for candidate mainnet witnesses (last 2 weekends) → choose `minQuorumWeight`, `maxAgeClosed`. → DEFERRED to Phase 11.M (mainnet-only; testnet uses mock witnesses). Keep defaults; fallback lower quorum / longer maxAgeClosed.
+- [~] 🛑 **G0.2 / G0.8** (a) Reactive sponsor status — **confirmed by user ✅**. (b) Tell Dien about the Veritas credit / invite to team — **pending user**.
 - **Done when:** `docs/verification.md` complete; README/steering/ADRs updated.
 
 ---

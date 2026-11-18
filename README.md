@@ -594,7 +594,7 @@ Valuation uses the **witnessed open tick**, never the pool's own spot.
 #### `NightShiftController` (`contracts/src/controller/NightShiftController.sol`)
 
 - Inherits Reactive Omni `AbstractCallback` (destination-side). Constructor takes the chain's **callback proxy** address and the expected **reactive contract** identity.
-- Every callback function's **first parameter is `address`** (placeholder `address(0)` on the reactive side, overwritten by the callback proxy with the reactive contract's identity). Authorize: `msg.sender == callbackProxy` **and** `firstArg == expectedReactive` (use the lib's modifiers if present).
+- Every callback function's **first parameter is `address`** (placeholder `address(0)` on the reactive side, overwritten by the callback proxy with the reactive contract's identity). Authorize with BOTH lib modifiers (verified G0.3/E): `onlyServiceProvider` (`msg.sender == callbackProxy`) **and** `onlyCallbackSender(reactive_)` (`firstArg == expectedReactive`). Never omit `onlyServiceProvider` — see `docs/verification.md`.
 - Callbacks (all `onlyReactive`):
   - `onAnchor(address, bytes32 poolId, uint64 seq, int24 anchorTick, uint16 riskBps, uint16 dispersionTicks, uint8 sources, uint40 observedAt)` → `hook.setState` → for each vault of the pool: `try vault.rebalance(...)` (failures emit `VaultRebalanceFailed`, never revert the callback).
   - `onRegime(address, bytes32 poolId, uint64 seq, uint8 regime, uint40 effectiveAt)` → `hook.setRegime`; on `CLOSED` start epoch + `vault.snapshotClose`; on `REOPEN_PENDING` nothing else.
@@ -631,9 +631,9 @@ Valuation uses the **witnessed open tick**, never the pool's own spot.
 
 #### `NightShiftReactive` (`contracts/src/reactive/NightShiftReactive.sol`)
 
-- Solidity `^0.8.29`, inherits Omni `AbstractReactive`; `react(LogRecord memory log_) external onlySystem`.
+- Solidity `^0.8.29`, inherits Omni `AbstractReactive`; `react(IReactive.LogRecord calldata log_) external onlySystem` (verified: `calldata`, not `memory` — see `docs/verification.md` G0.3).
 - `SYSTEM = ISystemContract(payable(0x8888888888888888888888888888888888888888))`.
-- Subscriptions: one per witness source (`SYSTEM.subscribe(chainId, emitter, topic0, topic1, REACTIVE_IGNORE, REACTIVE_IGNORE)`), one for the destination pool's own `Swap` (`SELF`), issuer action events, and one Cron topic (≈100 blocks ≈ 100 s; verify topic name/hash).
+- Subscriptions: one per witness source (`SYSTEM.subscribe(chainId, emitter, topic0, topic1, REACTIVE_IGNORE, REACTIVE_IGNORE)`), one for the destination pool's own `Swap` (`SELF`), issuer action events, and **Cron100** (verified: legacy sys contract `0x00..fffFfF`, topic0 `0xb49937fb…1503c70`, ~2 min, bills every tick — see `docs/verification.md` G0.3).
 - State: `sources[]`, per-source `{ewma, lastSeen, lastRaw}`, per-pool `{anchor, risk, regime, epochId, lastSentAnchor, lastCallbackAt, seq, openWindow buffer}`.
 - `react` dispatch:
   - Cron → evaluate calendar (regime transition?), heartbeat, open-window close, reconcile timeout.
