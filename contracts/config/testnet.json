@@ -1,0 +1,89 @@
+{
+  "_note": "Initial defaults to tune (README §7-§11). All ticks in destination tick space; fees in pips (1e6=100%); bps 0-10000; times in seconds. Hard caps MAX_FEE=100000, MAX_PERF_FEE=2000, MAX_SOURCES=16, MAX_VAULTS_PER_POOL=8 are compile-time constants, not here.",
+  "network": "testnet",
+  "pool": {
+    "tickSpacing": 60,
+    "dynamicFee": true,
+    "curatedOnly": false,
+    "configTimelock": 86400
+  },
+  "fee": {
+    "baseOpen": 3000,
+    "baseClosed": 3000,
+    "driftSlopeOpen": 2,
+    "captureShare": 3000,
+    "riskFeeMax": 10000,
+    "driftSlope": 20,
+    "driftMax": 45000,
+    "maxFeeClosed": 50000,
+    "reopenSurcharge": 1000,
+    "deadbandTicks": 5,
+    "maxAwayMove": 100,
+    "overshootCap": 20,
+    "anchorMaxAgeOpen": 1800,
+    "anchorMaxAgeClosed": 21600
+  },
+  "quorum": {
+    "minQuorumWeight": 4,
+    "minDistinctChains": 2,
+    "maxJumpTicks": 300,
+    "halfLifeSeconds": 300,
+    "minAnchorDeltaTicks": 10,
+    "riskBucketBps": 500,
+    "openWindowSeconds": 900,
+    "reconcileTimeoutSeconds": 3600,
+    "issuerOpenBoost": 2
+  },
+  "debounce": {
+    "heartbeatSeconds": 1800,
+    "minCallbackIntervalSeconds": 60
+  },
+  "risk": {
+    "timeFullSeconds": 230400,
+    "dispersionFullTicks": 200,
+    "divergenceFullTicks": 300,
+    "stalenessFullSeconds": 14400,
+    "weightTime": 3000,
+    "weightDispersion": 2500,
+    "weightDivergence": 3000,
+    "weightStaleness": 1500
+  },
+  "sourceWeights": {
+    "issuerMintRedeem": 5,
+    "v4SwapStablePair": 3,
+    "v4SwapOther": 2,
+    "v3Swap": 2,
+    "oracle": 1,
+    "self": 0
+  },
+  "halt": {
+    "maxHaltDurationSeconds": 1800
+  },
+  "gasLimits": {
+    "onAnchor": 2500000,
+    "onRegime": 1500000,
+    "onReconcile": 2500000,
+    "onCorporateAction": 2500000
+  },
+  "mandateTimelock": 86400,
+  "mandatePresets": {
+    "conservative": {
+      "open":   {"followBps": 5000,  "coreHalfWidth": 600, "wideHalfWidth": 3000, "coreShareBps": 5000, "riskWidenBps": 10000, "recenterThreshold": 60, "exitRiskBps": 6000},
+      "closed": {"followBps": 10000, "coreHalfWidth": 800, "wideHalfWidth": 4000, "coreShareBps": 4000, "riskWidenBps": 15000, "recenterThreshold": 50, "exitRiskBps": 5000},
+      "reopen": {"followBps": 10000, "coreHalfWidth": 700, "wideHalfWidth": 3500, "coreShareBps": 4000, "riskWidenBps": 12000, "recenterThreshold": 60, "exitRiskBps": 5500},
+      "perfFeeBps": 1000
+    },
+    "balanced": {
+      "open":   {"followBps": 7000,  "coreHalfWidth": 400, "wideHalfWidth": 2000, "coreShareBps": 6000, "riskWidenBps": 8000,  "recenterThreshold": 40, "exitRiskBps": 7500},
+      "closed": {"followBps": 10000, "coreHalfWidth": 500, "wideHalfWidth": 2500, "coreShareBps": 5000, "riskWidenBps": 12000, "recenterThreshold": 40, "exitRiskBps": 7000},
+      "reopen": {"followBps": 10000, "coreHalfWidth": 450, "wideHalfWidth": 2200, "coreShareBps": 5000, "riskWidenBps": 10000, "recenterThreshold": 40, "exitRiskBps": 7000},
+      "perfFeeBps": 1500
+    },
+    "aggressive": {
+      "open":   {"followBps": 10000, "coreHalfWidth": 200, "wideHalfWidth": 1200, "coreShareBps": 8000, "riskWidenBps": 6000, "recenterThreshold": 20, "exitRiskBps": 9000},
+      "closed": {"followBps": 10000, "coreHalfWidth": 250, "wideHalfWidth": 1500, "coreShareBps": 7000, "riskWidenBps": 9000, "recenterThreshold": 20, "exitRiskBps": 9000},
+      "reopen": {"followBps": 10000, "coreHalfWidth": 220, "wideHalfWidth": 1300, "coreShareBps": 7000, "riskWidenBps": 8000, "recenterThreshold": 20, "exitRiskBps": 9000},
+      "perfFeeBps": 2000
+    }
+  }
+}

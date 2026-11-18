@@ -1,0 +1,5 @@
+{
+  "_note": "STUB. Mainnet showcase is OUT OF SCOPE (ADR-011, testnet-only). If ever revived, copy contracts/config/testnet.json and retune per mainnet witnesses (G0.1/G0.7).",
+  "network": "mainnet",
+  "outOfScope": true
+}

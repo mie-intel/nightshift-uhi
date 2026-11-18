@@ -1,0 +1,11 @@
+{
+  "name": "@nightshift/recorder",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "NightShift event recorder, flow bot, report generator (Phase 12).",
+  "scripts": {
+    "lint": "echo 'recorder: no sources yet (Phase 12)'",
+    "build": "echo 'recorder: no build yet (Phase 12)'"
+  }
+}

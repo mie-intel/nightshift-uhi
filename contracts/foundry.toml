@@ -1,0 +1,42 @@
+# Foundry config. Destination contracts pragma ^0.8.26 (cancun / transient storage);
+# NightShiftReactive pragma ^0.8.29. solc is auto-detected per-file from the pragma,
+# so one build/test run compiles both. [profile.reactive] pins 0.8.29 for the
+# reactive deploy build. (README §16, docs/verification.md G0.4)
+
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+test = "test"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+auto_detect_solc = true
+bytecode_hash = "none"
+fs_permissions = [
+    { access = "read", path = "./config" },
+    { access = "read-write", path = "../deployments" },
+]
+
+[profile.default.fuzz]
+runs = 256
+
+[profile.default.invariant]
+runs = 64
+fail_on_revert = true
+
+# Reactive contract build/deploy: pin solc 0.8.29 (satisfies ^0.8.26 files too).
+[profile.reactive]
+src = "src"
+out = "out-reactive"
+libs = ["lib"]
+solc = "0.8.29"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+
+[fmt]
+line_length = 120
+tab_width = 4
+bracket_spacing = false
+int_types = "long"

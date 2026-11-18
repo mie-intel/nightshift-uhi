@@ -10,19 +10,21 @@ inclusion: always
 
 | Tool / lib | Use | Version |
 | --- | --- | --- |
-| Foundry (forge/cast/anvil) | build, test, scripts | TBD@Phase2 |
-| `Uniswap/v4-core` | PoolManager, types, `LPFeeLibrary`, `TickMath` | TBD@Phase2 |
-| `Uniswap/v4-periphery` | `HookMiner`, `LiquidityAmounts`, test routers | TBD@Phase2 |
-| `OpenZeppelin/uniswap-hooks` | `BaseHook`, `CurrencySettler` | TBD@Phase2 |
-| `OpenZeppelin/openzeppelin-contracts` (v5) | `ERC20`, `ReentrancyGuard`, `Ownable2Step`, `Math`, `SafeCast` | TBD@Phase2 |
-| `Reactive-Network/reactive-lib-omni` | `AbstractReactive`, `AbstractCallback`, `ISystemContract` | TBD@Phase2 |
-| `foundry-rs/forge-std` | tests | TBD@Phase2 |
-| Slither | static analysis | TBD@Phase2 |
-| Node ≥20, pnpm, TypeScript, `viem` | recorder, flow bot, scripts | TBD@Phase2 |
-| `better-sqlite3` / JSONL | recording store | TBD@Phase2 |
-| Next.js (App Router) + wagmi + viem + TanStack Query + Tailwind + Recharts | dashboard | TBD@Phase2 |
+| Foundry (forge/cast/anvil) | build, test, scripts | forge 1.7.1 |
+| `Uniswap/v4-core` | PoolManager, types, `LPFeeLibrary`, `TickMath` | **transitive** via uniswap-hooks (`lib/uniswap-hooks/lib/v4-core`) |
+| `Uniswap/v4-periphery` | `HookMiner`, `LiquidityAmounts`, test routers | **transitive** via uniswap-hooks (`lib/uniswap-hooks/lib/v4-periphery`) |
+| `OpenZeppelin/uniswap-hooks` | `BaseHook`, `BaseOverrideFee`, `CurrencySettler` | v1.2.1 |
+| `OpenZeppelin/openzeppelin-contracts` (v5) | `ERC20`, `ReentrancyGuard`, `Ownable2Step`, `Math`, `SafeCast` | v5.7.0 |
+| `Reactive-Network/reactive-lib-omni` | `AbstractReactive`, `AbstractCallback`, `ISystemContract` | v0.1.0 |
+| `foundry-rs/forge-std` | tests | v1.17.0 |
+| Slither | static analysis | TBD@Phase14 |
+| Node ≥20, pnpm, TypeScript, `viem` | recorder, flow bot, scripts | TBD@Phase12 |
+| `better-sqlite3` / JSONL | recording store | TBD@Phase12 |
+| Next.js (App Router) + wagmi + viem + TanStack Query + Tailwind + Recharts | dashboard | TBD@Phase13 |
 
-Layout/remappings starting point: `uniswapfoundation/v4-template` (compare, don't blindly copy).
+- **v4-core/v4-periphery are NOT installed top-level** — we use the exact copies uniswap-hooks v1.2.1 bundles, so hook-base types match ours. `remappings.txt` points `@uniswap/v4-core/` → `lib/uniswap-hooks/lib/v4-core/`. (Top-level v4-core@v4.0.0 lacked `types/PoolOperation.sol` → removed.) CI checkout must be `submodules: recursive`.
+- **solc is auto-detected per pragma** (no pin in default profile): destination `^0.8.26` and reactive `^0.8.29` compile in one run; observed solc 0.8.35 for the 0.8.29 unit. Versions locked in `contracts/foundry.lock`.
+- Layout/remappings starting point: `uniswapfoundation/v4-template` (compare, don't blindly copy).
 
 ## Compiler settings (README §16.1)
 

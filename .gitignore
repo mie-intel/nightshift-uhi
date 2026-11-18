@@ -1,5 +1,6 @@
-# Foundry
+# Foundry (lib/ tracked as git submodules — see .gitmodules)
 contracts/out/
+contracts/out-reactive/
 contracts/cache/
 contracts/broadcast/*/dry-run/
 out/
