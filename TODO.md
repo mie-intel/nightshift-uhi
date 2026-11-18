@@ -184,13 +184,13 @@ Output: `docs/verification.md` with one section per item: question, evidence (li
 
 ## Phase 2 — Scaffolding and tooling
 
-- [ ] `contracts/` Foundry project: `foundry.toml` with `[profile.default]` (src, out, libs, `evm_version = "cancun"`, `via_ir` only if needed, fuzz runs 256, invariant runs 64) and `[profile.reactive]` (0.8.29 settings per G0.4); `fs_permissions` for `config/` and `../deployments/`.
-- [ ] Install deps (README §16.1); write `remappings.txt` (`@uniswap/v4-core/`, `@uniswap/v4-periphery/`, `@openzeppelin/uniswap-hooks/`, `@openzeppelin/contracts/`, `@reactive/`, `forge-std/`).
-- [ ] `contracts/config/testnet.json` and `mainnet.json` with all parameters from README §7–§11 (pool params, quorum, risk, debounce, mandates presets, gas limits).
-- [ ] `Makefile` with all targets in README §20 (stubs allowed for later phases, but must exit non-zero with a clear message).
-- [ ] pnpm workspace (`pnpm-workspace.yaml`) with `recorder/` and `app/` packages (empty shells).
-- [ ] GitHub Actions `ci.yml`: `forge fmt --check`, `forge build`, `forge test`, `scripts/check-context.sh`, `pnpm -r lint`, `pnpm -r build`.
-- [ ] Fill pinned versions into `.kiro/steering/tech.md`.
+- [x] `contracts/` Foundry project: `foundry.toml` with `[profile.default]` (src, out, libs, `evm_version = "cancun"`, `via_ir` only if needed, fuzz runs 256, invariant runs 64) and `[profile.reactive]` (0.8.29 settings per G0.4); `fs_permissions` for `config/` and `../deployments/`.
+- [x] Install deps (README §16.1); write `remappings.txt` (`@uniswap/v4-core/`, `@uniswap/v4-periphery/`, `@openzeppelin/uniswap-hooks/`, `@openzeppelin/contracts/`, `@reactive/`, `forge-std/`).
+- [x] `contracts/config/testnet.json` and `mainnet.json` with all parameters from README §7–§11 (pool params, quorum, risk, debounce, mandates presets, gas limits).
+- [x] `Makefile` with all targets in README §20 (stubs allowed for later phases, but must exit non-zero with a clear message).
+- [x] pnpm workspace (`pnpm-workspace.yaml`) with `recorder/` and `app/` packages (empty shells).
+- [x] GitHub Actions `ci.yml`: `forge fmt --check`, `forge build`, `forge test`, `scripts/check-context.sh`, `pnpm -r lint`, `pnpm -r build`.
+- [x] Fill pinned versions into `.kiro/steering/tech.md`.
 - **Done when:** `make install && make build && make test` pass on a clean clone; CI green.
 
 ---
