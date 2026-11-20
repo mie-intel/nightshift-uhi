@@ -3,7 +3,8 @@ import { Brand } from "./components/Brand";
 import { MarketStatus } from "./components/MarketStatus";
 import { FeesCard, PriceCard, RiskCard } from "./components/Overview";
 import { HowItWorks } from "./components/HowItWorks";
-import { Loops } from "./components/Loops";
+import { Activity } from "./components/Activity";
+import { Witnesses } from "./components/Witnesses";
 import { Footer } from "./components/Footer";
 import { Card, Skeleton } from "./components/ui";
 
@@ -53,7 +54,8 @@ export default function App() {
           </div>
         </div>
 
-        <Loops />
+        <Witnesses />
+        <Activity />
       </main>
       <Footer />
     </>

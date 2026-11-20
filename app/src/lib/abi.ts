@@ -3,16 +3,25 @@ import { parseAbi } from "viem";
 /** Minimal ABIs (only what the dashboard calls) — keeps the bundle small. */
 
 export const hookAbi = parseAbi([
-  "function poolState(bytes32) view returns (int24 anchorTick, uint40 anchorUpdatedAt, uint16 riskBps, uint16 dispersionTicks, uint8 regime, uint64 lastSeq, bool curatedOnly, bool initialized)",
+  "function poolState(bytes32) view returns (int24 anchorTick, uint40 anchorUpdatedAt, uint16 riskBps, uint16 dispersionTicks, uint8 regime, uint64 lastSeq, bool curatedOnly, bool initialized, uint64 lastRegimeSeq)",
   "function quoteFee((address currency0, address currency1, uint24 fee, int24 tickSpacing, address hooks) key, bool zeroForOne) view returns (uint24 fee, bool away)",
   "event AnchorUpdated(bytes32 indexed id, int24 anchorTick, uint16 riskBps, uint16 dispersionTicks, uint64 seq)",
+  "event RegimeSet(bytes32 indexed id, uint8 regime, uint64 seq)",
   "event SwapObserved(bytes32 indexed id, int24 tickBefore, int24 tickAfter, uint24 fee, bool away)",
 ]);
 
 export const poolManagerAbi = parseAbi(["function extsload(bytes32 slot) view returns (bytes32)"]);
 
 export const reactiveAbi = parseAbi([
-  "event CallbackRequested(uint256 indexed destChainId, address indexed controller, uint64 seq, int24 anchorTick)",
+  "event CallbackRequested(uint8 indexed kind, uint64 seq, int24 anchorTick, uint16 riskBps, uint8 regime)",
+  "struct WitnessSource { uint256 chainId; address emitter; uint256 topic0; uint256 topic1; uint8 kind; bool invert; int24 offsetTicks; uint16 weight; uint128 minNotional; uint32 maxAgeOpen; uint32 maxAgeClosed; bool enabled; }",
+  "struct SourceState { int24 ewma; int24 lastRaw; uint40 lastSeen; }",
+  "function sourceCount() view returns (uint256)",
+  "function sourceAt(uint256 i) view returns (WitnessSource, SourceState)",
+  "function quorum() view returns (bool)",
+  "function anchor() view returns (int24)",
+  "function riskBps() view returns (uint16)",
+  "function regime() view returns (uint8)",
 ]);
 
 export const issuerAbi = parseAbi([

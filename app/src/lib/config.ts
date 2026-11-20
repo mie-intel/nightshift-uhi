@@ -40,6 +40,8 @@ export const D = {
   stock: dest.dStock as Address,
   usd: dest.dUsd as Address,
   swapRouter: dest.swapRouter as Address,
+  siblingPoolId: ((dest as { siblingPoolId?: string }).siblingPoolId ?? "0x") as Hex,
+  siblingFee: Number((dest as { siblingFee?: number }).siblingFee ?? 3000),
   faucet: ((dest as { faucet?: string }).faucet ?? ZERO) as Address,
   invert: dest.invert as boolean,
   reactive: deployments.lasna.reactive as Address,
@@ -63,6 +65,11 @@ export const poolKey = {
   tickSpacing: params.pool.tickSpacing,
   hooks: D.hook,
 } as const;
+
+/** Sibling pool B: same pair, no hook — a separate market Reactive witnesses. */
+export const siblingKey = { ...poolKey, fee: D.siblingFee, hooks: "0x0000000000000000000000000000000000000000" as Address } as const;
+
+export const CHAIN_NAMES: Record<number, string> = { 11155111: "Ethereum Sepolia", 84532: "Base Sepolia", 5318007: "Reactive Lasna" };
 
 /** Buying dSTOCK pays dUSD. If dUSD is currency0 (invert), that is zeroForOne. */
 export const BUY_ZERO_FOR_ONE = D.invert;

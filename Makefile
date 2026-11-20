@@ -4,7 +4,7 @@ C := contracts
 SHELL := /bin/bash
 
 .PHONY: help install build build-reactive test test-scenarios coverage slither fmt fmt-check \
-        deploy-testnet deploy-origin deploy-dest deploy-reactive deploy-controller wire-reactive deploy-faucet app-build \
+        deploy-testnet deploy-origin deploy-dest deploy-reactive deploy-controller wire-reactive deploy-faucet app-build news \
         fund-reactive e2e-testnet record report app check-context
 
 # Load .env (never committed) into recipe shells. Override per-chain forge flags if a chain needs e.g. --legacy.
@@ -69,6 +69,10 @@ wire-reactive: ## 04: reactive.setController + subscribe (Lasna)
 
 deploy-faucet: ## 06: public demo-token faucet on Base Sepolia (for dashboard swaps)
 	$(ENV) cd $(C) && forge script script/06_DeployFaucet.s.sol --rpc-url $$RPC_BASE_SEPOLIA --broadcast
+
+news: ## demo "weekend news": issuer price → PRICE (raw dUSD/share, e.g. 104000000) on Sepolia + sibling pool on Base
+	$(ENV) cd $(C) && MOVE_BPS=$$(( ($${PRICE:?set PRICE e.g. 104000000} * 10000 / $$(cast call $$(jq -r .ethSepolia.mockIssuer ../deployments/testnet.json) 'price()(uint256)' --rpc-url $$RPC_ETH_SEPOLIA | cut -d' ' -f1)) - 10000 )) forge script script/05_TriggerIssuerMint.s.sol --rpc-url $$RPC_ETH_SEPOLIA --broadcast $(ORIGIN_FLAGS)
+	$(ENV) cd $(C) && forge script script/07_MoveSibling.s.sol --rpc-url $$RPC_BASE_SEPOLIA --broadcast
 
 fund-reactive: ## get lREACT on Lasna: send LREACT_ETH (default 0.05ether) Base Sepolia ETH to the faucet (1 ETH = 100 lREACT)
 	$(ENV) cast send $$LREACT_FAUCET_BASE_SEPOLIA --value $${LREACT_ETH:-0.05ether} --rpc-url $$RPC_BASE_SEPOLIA --private-key $$REACTIVE_PRIVATE_KEY

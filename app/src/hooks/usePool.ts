@@ -1,12 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { encodeAbiParameters, keccak256 } from "viem";
 import { multicall } from "viem/actions";
 import { clients, D, FEE, poolKey, BUY_ZERO_FOR_ONE } from "../lib/config";
 import { hookAbi, poolManagerAbi } from "../lib/abi";
 import { tickToPrice } from "../lib/format";
+import { slot0Key, tickFromSlot0 } from "../lib/pool";
 
-/** v4 PoolManager stores Pool.State at keccak256(poolId, POOLS_SLOT = 6); slot0 = first word. */
-const SLOT0 = keccak256(encodeAbiParameters([{ type: "bytes32" }, { type: "uint256" }], [D.poolId, 6n]));
+const SLOT0 = slot0Key(D.poolId);
 
 export type QuotedFee = { fee: number; away: boolean } | null;
 
@@ -36,9 +35,7 @@ async function readPool(): Promise<PoolView> {
   });
   if (slot0.status !== "success" || state.status !== "success") throw new Error("pool read failed");
 
-  const word = BigInt(slot0.result);
-  const rawTick = Number((word >> 160n) & 0xffffffn);
-  const tick = rawTick >= 0x800000 ? rawTick - 0x1000000 : rawTick;
+  const tick = tickFromSlot0(slot0.result);
   const [anchorTick, updatedAt, riskBps, , regime, lastSeq] = state.result;
   const hasAnchor = updatedAt > 0;
   const maxAge = regime === 0 ? FEE.anchorMaxAgeOpen : FEE.anchorMaxAgeClosed;
