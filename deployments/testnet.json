@@ -3,7 +3,8 @@
     "chainId": 11155111,
     "dStock": "0x48B9ce651438AddB21c577e845De4Ae74D888459",
     "dUsd": "0xD6B7BEF49c8E7c14F7b37ee3f1cdCd916d56EBC1",
-    "mockIssuer": "0x83Ec94D9fc79a41DF16652d4F359930D1dF22B58"
+    "mockIssuer": "0x83Ec94D9fc79a41DF16652d4F359930D1dF22B58",
+    "deployBlock": 12175947
   },
   "destination": {
     "chainId": 84532,
@@ -16,10 +17,13 @@
     "liquidityRouter": "0x18C7b5c9C3e82a1bC5D83027E92465938Ff47cE2",
     "poolId": "0x40a1bf5ad017a6c437c8175c355ffac3387d0fc655ab06c6b8eb38695cdbee23",
     "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
-    "swapRouter": "0x0809e4e6016eF2c587B1571DA6D193993F31bB60"
+    "swapRouter": "0x0809e4e6016eF2c587B1571DA6D193993F31bB60",
+    "faucet": "0x0000000000000000000000000000000000000000",
+    "deployBlock": 61327600
   },
   "lasna": {
     "chainId": 5318007,
-    "reactive": "0x5c34094CCc335B38092924C07cAC0D00D36a1c3b"
+    "reactive": "0x5c34094CCc335B38092924C07cAC0D00D36a1c3b",
+    "deployBlock": 8820350
   }
 }

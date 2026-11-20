@@ -31,6 +31,7 @@ contract DeployReactive is Script {
 
         string memory o = "lasna";
         vm.serializeUint(o, "chainId", block.chainid);
+        vm.serializeUint(o, "deployBlock", block.number); // lower bound for dashboard event scans
         string memory out = vm.serializeAddress(o, "reactive", address(rx));
         Deployments.write("testnet", "lasna", out);
         console.log("NightShiftReactive", address(rx));

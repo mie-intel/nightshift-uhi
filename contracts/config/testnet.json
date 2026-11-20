@@ -180,7 +180,10 @@
     "liquidityHalfWidthTicks": 6000,
     "liquidityDelta": 1000000000000000,
     "deployerUsdMint": 1000000000000,
-    "deployerStockMint": 1000000000000000000000
+    "deployerStockMint": 1000000000000000000000,
+    "faucetStock": 10000000000000000000,
+    "faucetUsd": 2000000000,
+    "faucetCooldownSeconds": 21600
   },
   "funding": {
     "_note": "wei of native token: lREACT on Lasna, ETH on the destination chain (Base Sepolia)",

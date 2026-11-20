@@ -30,6 +30,7 @@ contract DeployOrigin is Script {
 
         string memory o = "origin";
         vm.serializeUint(o, "chainId", block.chainid);
+        vm.serializeUint(o, "deployBlock", block.number); // lower bound for dashboard event scans
         vm.serializeAddress(o, "dStock", address(stock));
         vm.serializeAddress(o, "dUsd", address(usd));
         string memory out = vm.serializeAddress(o, "mockIssuer", address(issuer));

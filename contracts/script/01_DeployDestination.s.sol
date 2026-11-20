@@ -109,6 +109,7 @@ contract DeployDestination is Script {
     function _write(Ctx memory c) internal {
         string memory o = "dest";
         vm.serializeUint(o, "chainId", block.chainid);
+        vm.serializeUint(o, "deployBlock", block.number); // lower bound for dashboard event scans
         vm.serializeAddress(o, "poolManager", address(c.pm));
         vm.serializeAddress(o, "dStock", address(c.stock));
         vm.serializeAddress(o, "dUsd", address(c.usd));
