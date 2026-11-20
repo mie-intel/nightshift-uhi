@@ -14,7 +14,8 @@ import {SwapParams, ModifyLiquidityParams} from "@uniswap/v4-core/src/types/Pool
 import {INightShiftHook} from "../interfaces/INightShiftHook.sol";
 import {FeeMath} from "../libraries/FeeMath.sol";
 import {NyseCalendar} from "../libraries/NyseCalendar.sol";
-import {PoolConfig, Regime} from "../libraries/Types.sol";
+import {RiskMath} from "../libraries/RiskMath.sol";
+import {PoolConfig, Regime, RiskParams} from "../libraries/Types.sol";
 
 /// @title NightShiftHook
 /// @notice Dynamic-fee hook for tokenized-stock pools while Wall Street sleeps (README §9, §13.1).
@@ -24,16 +25,17 @@ import {PoolConfig, Regime} from "../libraries/Types.sol";
 contract NightShiftHook is BaseOverrideFee, INightShiftHook {
     using StateLibrary for IPoolManager;
 
-    /// @notice Per-pool state (README §13.1, + `initialized`).
+    /// @notice Per-pool state (README §13.1, + `initialized`, + separate regime seq channel — ADR-017).
     struct PoolState {
         int24 anchorTick;
         uint40 anchorUpdatedAt;
         uint16 riskBps;
         uint16 dispersionTicks;
         Regime regime;
-        uint64 lastSeq;
+        uint64 lastSeq; // anchor channel
         bool curatedOnly;
         bool initialized;
+        uint64 lastRegimeSeq; // regime channel
     }
 
     uint16 private constant MAX_RISK = 10_000;
@@ -47,6 +49,10 @@ contract NightShiftHook is BaseOverrideFee, INightShiftHook {
     address public immutable owner;
     /// @notice Only address allowed to mutate pool state.
     address public controller;
+    /// @notice Local divergence full-scale (ticks) for `riskUsed = max(stored, local)` (README §8.3).
+    uint24 public immutable divergenceFullTicks;
+    /// @notice Local divergence weight (bps of risk) — same weight the Reactive risk score uses.
+    uint16 public immutable divergenceWeight;
     /// @notice Fee policy applied to every pool of this hook (v0: one config; registry-driven per-pool in Phase 7).
     PoolConfig internal _config;
     /// @notice State per pool.
@@ -71,8 +77,10 @@ contract NightShiftHook is BaseOverrideFee, INightShiftHook {
     event PoolRegistered(PoolId indexed id, Regime regime);
     /// @notice Anchor/risk updated from a Reactive callback.
     event AnchorUpdated(PoolId indexed id, int24 anchorTick, uint16 riskBps, uint16 dispersionTicks, uint64 seq);
-    /// @notice Regime changed.
+    /// @notice Regime changed by a Reactive callback.
     event RegimeSet(PoolId indexed id, Regime regime, uint64 seq);
+    /// @notice Regime changed by a permissionless Controller fallback (calendar / reconcile timeout).
+    event RegimeForced(PoolId indexed id, Regime regime);
     /// @notice Anchor is stale: max protection applies (emitted once per stale period).
     event AnchorStale(PoolId indexed id);
     /// @notice A swap passed fee + caps.
@@ -80,10 +88,16 @@ contract NightShiftHook is BaseOverrideFee, INightShiftHook {
 
     /// @param poolManager_ v4 PoolManager
     /// @param config_ fee policy (from contracts/config/*.json), validated against hard caps
+    /// @param risk_ risk params (from config `risk`); only the divergence pair is used on-chain here
     /// @param owner_ account allowed to set the Controller once (CREATE2 deploys make msg.sender the factory)
-    constructor(IPoolManager poolManager_, PoolConfig memory config_, address owner_) BaseHook(poolManager_) {
+    constructor(IPoolManager poolManager_, PoolConfig memory config_, RiskParams memory risk_, address owner_)
+        BaseHook(poolManager_)
+    {
         FeeMath.validate(config_);
+        RiskMath.validate(risk_);
         _config = config_;
+        divergenceFullTicks = risk_.divergenceFullTicks;
+        divergenceWeight = risk_.weightDivergence;
         owner = owner_;
     }
 
@@ -121,9 +135,25 @@ contract NightShiftHook is BaseOverrideFee, INightShiftHook {
 
     /// @inheritdoc INightShiftHook
     function setRegime(PoolId id, Regime regime, uint64 seq) external onlyController {
-        PoolState storage s = _checkedSeq(id, seq);
+        PoolState storage s = poolState[id];
+        if (!s.initialized) revert UnknownPool();
+        if (seq <= s.lastRegimeSeq) revert StaleSeq();
+        s.lastRegimeSeq = seq;
         s.regime = regime;
         emit RegimeSet(id, regime, seq);
+    }
+
+    /// @inheritdoc INightShiftHook
+    function forceRegime(PoolId id, Regime regime) external onlyController {
+        PoolState storage s = poolState[id];
+        if (!s.initialized) revert UnknownPool();
+        s.regime = regime;
+        emit RegimeForced(id, regime);
+    }
+
+    /// @inheritdoc INightShiftHook
+    function regimeOf(PoolId id) external view returns (Regime) {
+        return poolState[id].regime;
     }
 
     /// @inheritdoc INightShiftHook
@@ -223,7 +253,9 @@ contract NightShiftHook is BaseOverrideFee, INightShiftHook {
             riskUsed = MAX_RISK;
         } else {
             (away, absD) = FeeMath.direction(tick, s.anchorTick, zeroForOne, _config.deadbandTicks);
-            riskUsed = s.riskBps;
+            // a late callback can't make fees too cheap: local divergence is a floor (README §8.3)
+            uint256 local = uint256(divergenceWeight) * RiskMath.component(absD, divergenceFullTicks) / 10_000;
+            riskUsed = local > s.riskBps ? uint16(local) : s.riskBps;
         }
         fee = FeeMath.fee(_config, s.regime, away, absD, riskUsed);
     }

@@ -31,9 +31,9 @@ contract PriceMathTest is Test {
         uint256 pLoX128 = FullMath.mulDiv(lo, lo, 1 << 64);
         uint256 pHiX128 = FullMath.mulDiv(hi, hi, 1 << 64);
         uint256 rX128 = FullMath.mulDiv(quote, 1 << 128, base);
-        // allow 1-unit rounding slack in X128 space
-        assertLe(pLoX128, rX128 + 1, "tick above ratio");
-        assertGt(pHiX128 + 1, rX128, "tick below ratio");
+        // floor semantics up to rounding: ratios within 1e-8 of a tick boundary may land on either side (spec ±1 tick)
+        assertLe(pLoX128, rX128 + rX128 / 1e8 + 1, "tick above ratio");
+        assertGt(pHiX128 + pHiX128 / 1e8 + 1, rX128, "tick below ratio");
     }
 
     function test_ratioOne_isTickZero() public view {
@@ -61,6 +61,14 @@ contract PriceMathTest is Test {
         int24 t = h.tickFromRatio(4e18, 1e18); // ln4/ln1.0001 ~ 13863
         _assertBrackets(4e18, 1e18, t);
         assertApproxEqAbs(int256(t), 13863, 1);
+    }
+
+    /// @dev Regression (fuzz found, 20 Nov 2026): tiny ratios lost precision via the X128 path (tick off by ≥1).
+    function test_regression_tinyRatio_precision() public view {
+        uint256 q = 3067;
+        uint256 b = 79_228_162_514_264_337_593_543_949_487;
+        int24 t = h.tickFromRatio(q, b);
+        _assertBrackets(q, b, t);
     }
 
     function test_inversion_isNegation() public view {

@@ -43,6 +43,7 @@ contract DeployDestination is Script {
         PoolSwapTest swapRouter;
         PoolModifyLiquidityTest lpRouter;
         PoolKey key;
+        PoolKey siblingKey;
         bool invert;
         int24 initTick;
     }
@@ -55,14 +56,14 @@ contract DeployDestination is Script {
         uint256 pk = vm.envUint("DEPLOYER_PRIVATE_KEY");
         c.me = vm.addr(pk);
 
-        bytes memory args = abi.encode(c.pm, c.pc, c.me);
+        bytes memory args = abi.encode(c.pm, c.pc, NightShiftConfig.riskParams(c.cfg), c.me);
         (address predicted, bytes32 salt) =
             HookMiner.find(CREATE2_FACTORY, FLAGS, type(NightShiftHook).creationCode, args);
 
         vm.startBroadcast(pk);
         c.stock = new DemoToken("Demo Stock", "dSTOCK", uint8(c.cfg.readUint(".demo.stockDecimals")));
         c.usd = new DemoToken("Demo USD", "dUSD", uint8(c.cfg.readUint(".demo.usdDecimals")));
-        c.hook = new NightShiftHook{salt: salt}(c.pm, c.pc, c.me);
+        c.hook = new NightShiftHook{salt: salt}(c.pm, c.pc, NightShiftConfig.riskParams(c.cfg), c.me);
         require(address(c.hook) == predicted, "hook address mismatch");
         c.swapRouter = new PoolSwapTest(c.pm);
         c.lpRouter = new PoolModifyLiquidityTest(c.pm);
@@ -94,10 +95,14 @@ contract DeployDestination is Script {
         int24 half = int24(int256(c.cfg.readUint(".demo.liquidityHalfWidthTicks")));
         int24 lower = _floor(c.initTick - half, spacing);
         int24 upper = _floor(c.initTick + half, spacing) + spacing;
-        c.lpRouter
-            .modifyLiquidity(
-                c.key, ModifyLiquidityParams(lower, upper, int256(c.cfg.readUint(".demo.liquidityDelta")), 0), ""
-            );
+        ModifyLiquidityParams memory lp =
+            ModifyLiquidityParams(lower, upper, int256(c.cfg.readUint(".demo.liquidityDelta")), 0);
+        c.lpRouter.modifyLiquidity(c.key, lp, "");
+
+        // Sibling pool B: a plain v4 pool (no hook) for the same pair — a separate market that Reactive witnesses.
+        c.siblingKey = PoolKey(c0, c1, uint24(c.cfg.readUint(".demo.siblingFee")), spacing, IHooks(address(0)));
+        c.pm.initialize(c.siblingKey, TickMath.getSqrtPriceAtTick(c.initTick));
+        c.lpRouter.modifyLiquidity(c.siblingKey, lp, "");
     }
 
     function _floor(int24 t, int24 spacing) internal pure returns (int24) {
@@ -119,6 +124,9 @@ contract DeployDestination is Script {
         vm.serializeBool(o, "invert", c.invert);
         vm.serializeInt(o, "initTick", c.initTick);
         vm.serializeAddress(o, "controller", address(0)); // set by 03
+        vm.serializeAddress(o, "faucet", address(0)); // set by 06
+        vm.serializeUint(o, "siblingFee", c.siblingKey.fee);
+        vm.serializeBytes32(o, "siblingPoolId", PoolId.unwrap(c.siblingKey.toId()));
         string memory out = vm.serializeBytes32(o, "poolId", PoolId.unwrap(c.key.toId()));
         Deployments.write("testnet", "destination", out);
         console.log("hook", address(c.hook));

@@ -98,3 +98,25 @@ struct EpochResult {
     uint256 perfFeeShares;
     bool degraded;
 }
+
+/// @notice Witness-quorum, debounce and reopen parameters for NightShiftReactive (README §7.4–§7.7).
+struct QuorumParams {
+    uint16 minQuorumWeight; // in whole weight units (scaled by WitnessMath.WEIGHT_SCALE internally)
+    uint8 minDistinctChains;
+    uint24 maxJumpTicks;
+    uint32 halfLifeSeconds;
+    uint24 minAnchorDeltaTicks;
+    uint16 riskBucketBps;
+    uint32 heartbeatSeconds;
+    uint32 minCallbackIntervalSeconds;
+    uint32 openWindowSeconds;
+    uint32 reconcileTimeoutSeconds;
+    uint8 issuerOpenBoost;
+}
+
+/// @notice Callback gas limits per callback type (>= 100 000 each).
+struct GasLimits {
+    uint64 onAnchor;
+    uint64 onRegime;
+    uint64 onReconcile;
+}

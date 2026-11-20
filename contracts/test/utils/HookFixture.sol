@@ -19,7 +19,7 @@ import {SwapParams, ModifyLiquidityParams} from "@uniswap/v4-core/src/types/Pool
 import {NightShiftHook} from "../../src/hook/NightShiftHook.sol";
 import {DemoToken} from "../../src/mocks/DemoToken.sol";
 import {NyseCalendar} from "../../src/libraries/NyseCalendar.sol";
-import {PoolConfig} from "../../src/libraries/Types.sol";
+import {PoolConfig, RiskParams} from "../../src/libraries/Types.sol";
 import {NightShiftConfig} from "../../script/utils/NightShiftConfig.sol";
 
 /// @notice Local v4 PoolManager + test routers + NightShiftHook + one dynamic-fee pool with deep liquidity at tick 0.
@@ -39,6 +39,7 @@ abstract contract HookFixture is Test {
 
     NightShiftHook internal hook;
     PoolConfig internal cfg;
+    RiskParams internal riskCfg;
     PoolId internal poolId;
     address internal hookOwner = makeAddr("hookOwner");
 
@@ -56,6 +57,7 @@ abstract contract HookFixture is Test {
         vm.warp(initTime);
         string memory json = NightShiftConfig.load("testnet");
         cfg = NightShiftConfig.poolConfig(json);
+        riskCfg = NightShiftConfig.riskParams(json);
 
         manager = IPoolManager(deployCode("PoolManager.sol:PoolManager", abi.encode(address(this))));
         swapRouter = new PoolSwapTest(manager);
@@ -63,7 +65,7 @@ abstract contract HookFixture is Test {
         (currency0, currency1) = _deployCurrencies();
 
         address hookAddr = address(HOOK_FLAGS | (uint160(0x4444) << 144));
-        deployCodeTo("NightShiftHook.sol:NightShiftHook", abi.encode(manager, cfg, hookOwner), hookAddr);
+        deployCodeTo("NightShiftHook.sol:NightShiftHook", abi.encode(manager, cfg, riskCfg, hookOwner), hookAddr);
         hook = NightShiftHook(hookAddr);
 
         (key, poolId) = initPool(

@@ -3,7 +3,7 @@ pragma solidity ^0.8.26;
 
 import {Vm} from "forge-std/Vm.sol";
 import {stdJson} from "forge-std/StdJson.sol";
-import {PoolConfig} from "../../src/libraries/Types.sol";
+import {PoolConfig, RiskParams, QuorumParams, GasLimits} from "../../src/libraries/Types.sol";
 
 /// @title NightShiftConfig
 /// @notice Reads tunable parameters from `contracts/config/{network}.json` (rule: params never hard-coded).
@@ -34,6 +34,45 @@ library NightShiftConfig {
         c.overshootCap = uint24(json.readUint(".fee.overshootCap"));
         c.anchorMaxAgeOpen = uint32(json.readUint(".fee.anchorMaxAgeOpen"));
         c.anchorMaxAgeClosed = uint32(json.readUint(".fee.anchorMaxAgeClosed"));
+    }
+
+    /// @notice Gap Risk Score params from the `risk` section.
+    function riskParams(string memory json) internal pure returns (RiskParams memory r) {
+        r.timeFullSeconds = uint32(json.readUint(".risk.timeFullSeconds"));
+        r.dispersionFullTicks = uint24(json.readUint(".risk.dispersionFullTicks"));
+        r.divergenceFullTicks = uint24(json.readUint(".risk.divergenceFullTicks"));
+        r.stalenessFullSeconds = uint32(json.readUint(".risk.stalenessFullSeconds"));
+        r.weightTime = uint16(json.readUint(".risk.weightTime"));
+        r.weightDispersion = uint16(json.readUint(".risk.weightDispersion"));
+        r.weightDivergence = uint16(json.readUint(".risk.weightDivergence"));
+        r.weightStaleness = uint16(json.readUint(".risk.weightStaleness"));
+    }
+
+    /// @notice Quorum + debounce + reopen params from `quorum` and `debounce`.
+    function quorumParams(string memory json) internal pure returns (QuorumParams memory q) {
+        q.minQuorumWeight = uint16(json.readUint(".quorum.minQuorumWeight"));
+        q.minDistinctChains = uint8(json.readUint(".quorum.minDistinctChains"));
+        q.maxJumpTicks = uint24(json.readUint(".quorum.maxJumpTicks"));
+        q.halfLifeSeconds = uint32(json.readUint(".quorum.halfLifeSeconds"));
+        q.minAnchorDeltaTicks = uint24(json.readUint(".quorum.minAnchorDeltaTicks"));
+        q.riskBucketBps = uint16(json.readUint(".quorum.riskBucketBps"));
+        q.heartbeatSeconds = uint32(json.readUint(".debounce.heartbeatSeconds"));
+        q.minCallbackIntervalSeconds = uint32(json.readUint(".debounce.minCallbackIntervalSeconds"));
+        q.openWindowSeconds = uint32(json.readUint(".quorum.openWindowSeconds"));
+        q.reconcileTimeoutSeconds = uint32(json.readUint(".quorum.reconcileTimeoutSeconds"));
+        q.issuerOpenBoost = uint8(json.readUint(".quorum.issuerOpenBoost"));
+    }
+
+    /// @notice Callback gas limits.
+    function gasLimits(string memory json) internal pure returns (GasLimits memory g) {
+        g.onAnchor = uint64(json.readUint(".gasLimits.onAnchor"));
+        g.onRegime = uint64(json.readUint(".gasLimits.onRegime"));
+        g.onReconcile = uint64(json.readUint(".gasLimits.onReconcile"));
+    }
+
+    /// @notice Cron topic0 for the reactive subscription.
+    function cronTopic(string memory json) internal pure returns (uint256) {
+        return uint256(json.readBytes32(".cron.topic0"));
     }
 
     /// @notice Pool tick spacing.

@@ -183,11 +183,22 @@
     "deployerStockMint": 1000000000000000000000,
     "faucetStock": 10000000000000000000,
     "faucetUsd": 2000000000,
-    "faucetCooldownSeconds": 21600
+    "faucetCooldownSeconds": 21600,
+    "siblingFee": 3000
   },
   "funding": {
     "_note": "wei of native token: lREACT on Lasna, ETH on the destination chain (Base Sepolia)",
-    "reactiveWei": 2000000000000000000,
+    "reactiveWei": 1300000000000000000,
     "controllerWei": 10000000000000000
+  },
+  "witness": {
+    "_note": "Per-source freshness (README \u00a77.5): fresh if now - lastSeen <= maxAge(regime). Weights in sourceWeights.",
+    "maxAgeOpenSeconds": 1800,
+    "maxAgeClosedSeconds": 21600
+  },
+  "cron": {
+    "_note": "Reactive Cron subscription (docs/verification.md G0.3). Cron1000 ~17 min (~85 ticks/day, ~1 lREACT/day at 100 gwei) instead of Cron100 (~10 lREACT/day) \u2014 ADR-017. Cron100 topic: 0xb49937fb8970e19fd46d48f7e3fb00d659deac0347f79cd7cb542f0fc1503c70",
+    "topic0": "0xe20b31294d84c3661ddc8f423abb9c70310d0cf172aa2714ead78029b325e3f4",
+    "approxIntervalSeconds": 1000
   }
 }

@@ -34,6 +34,14 @@ contract MockSystemContract {
         _subs.push(Sub(msg.sender, chainId, emitter, t0, t1, t2, t3));
     }
 
+    /// @notice Unsubscriptions recorded (count only).
+    uint256 public unsubCount;
+
+    /// @notice Record an unsubscription.
+    function unsubscribe(uint256, address, uint256, uint256, uint256, uint256) external {
+        unsubCount++;
+    }
+
     /// @notice Queue a callback request.
     function requestCallbackV_1_0(ISystemContract.CallbackConfiguration_V_1_0 memory config) external {
         _queue.push(Queued(msg.sender, config));

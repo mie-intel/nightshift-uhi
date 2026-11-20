@@ -8,7 +8,7 @@ import {NightShiftReactive} from "../src/reactive/NightShiftReactive.sol";
 import {NightShiftConfig} from "./utils/NightShiftConfig.sol";
 import {Deployments} from "./utils/Deployments.sol";
 
-/// @title 02 — Reactive Network (Lasna): NightShiftReactive, funded with lREACT. Controller/subscription wired in 04.
+/// @title 02 — Reactive Network (Lasna): NightShiftReactive v1, funded with lREACT. Sources/Cron wired in 04.
 /// @notice `FOUNDRY_PROFILE=reactive forge script script/02_DeployReactive.s.sol --rpc-url $RPC_LASNA --broadcast`
 contract DeployReactive is Script {
     using stdJson for string;
@@ -21,11 +21,10 @@ contract DeployReactive is Script {
         NightShiftReactive rx = new NightShiftReactive{value: cfg.readUint(".funding.reactiveWei")}(
             cfg.readUint(".chains.destination.chainId"),
             Deployments.b32("testnet", "destination", "poolId"),
-            cfg.readUint(".chains.ethSepolia.chainId"),
-            Deployments.addr("testnet", "ethSepolia", "mockIssuer"),
-            Deployments.flag("testnet", "destination", "invert"),
-            0, // same decimals on every chain (config.demo)
-            NightShiftConfig.anchorGasLimit(cfg)
+            NightShiftConfig.quorumParams(cfg),
+            NightShiftConfig.riskParams(cfg),
+            NightShiftConfig.gasLimits(cfg),
+            NightShiftConfig.cronTopic(cfg)
         );
         vm.stopBroadcast();
 

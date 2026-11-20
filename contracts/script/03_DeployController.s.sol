@@ -27,7 +27,10 @@ contract DeployController is Script {
 
         vm.startBroadcast(pk);
         NightShiftController ctrl = new NightShiftController{value: cfg.readUint(".funding.controllerWei")}(
-            cfg.readAddress(".chains.destination.callbackProxy"), reactive, INightShiftHook(hook)
+            cfg.readAddress(".chains.destination.callbackProxy"),
+            reactive,
+            INightShiftHook(hook),
+            cfg.readUint(".quorum.reconcileTimeoutSeconds")
         );
         IHookAdmin(hook).initController(address(ctrl));
         vm.stopBroadcast();

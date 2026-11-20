@@ -33,7 +33,7 @@ contract NightShiftHookTest is HookFixture {
     }
 
     function _regime() internal view returns (Regime r) {
-        (,,,, r,,,) = hook.poolState(poolId);
+        (,,,, r,,,,) = hook.poolState(poolId);
     }
 
     // ---------------------------------------------------------------- setup / permissions
@@ -45,7 +45,7 @@ contract NightShiftHookTest is HookFixture {
     }
 
     function test_init_regimeFromCalendar_closedOnSaturday() public view {
-        (,,,,,,, bool initialized) = hook.poolState(poolId);
+        (,,,,,,, bool initialized,) = hook.poolState(poolId);
         assertTrue(initialized);
         assertEq(uint8(_regime()), uint8(Regime.CLOSED));
     }
@@ -53,7 +53,7 @@ contract NightShiftHookTest is HookFixture {
     function test_init_regimeFromCalendar_openOnMonday() public {
         vm.warp(_monOpen());
         (, PoolId id2) = initPool(currency0, currency1, IHooks(address(hook)), 0x800000, 120, SQRT_PRICE_1_1);
-        (,,,, Regime r,,,) = hook.poolState(id2);
+        (,,,, Regime r,,,,) = hook.poolState(id2);
         assertEq(uint8(r), uint8(Regime.OPEN));
     }
 
@@ -66,7 +66,9 @@ contract NightShiftHookTest is HookFixture {
         cfg.maxFeeClosed = FeeMath.MAX_FEE + 1;
         vm.expectRevert(FeeMath.FeeCapTooHigh.selector);
         deployCodeTo(
-            "NightShiftHook.sol:NightShiftHook", abi.encode(manager, cfg, hookOwner), address(HOOK_FLAGS | (1 << 150))
+            "NightShiftHook.sol:NightShiftHook",
+            abi.encode(manager, cfg, riskCfg, hookOwner),
+            address(HOOK_FLAGS | (1 << 150))
         );
     }
 
@@ -92,8 +94,10 @@ contract NightShiftHookTest is HookFixture {
         vm.startPrank(controller);
         vm.expectRevert(NightShiftHook.StaleSeq.selector);
         hook.setState(poolId, 20, 0, 0, seq); // replay
+        // regime is its own seq channel (ADR-017): callbacks may land out of order across channels
+        hook.setRegime(poolId, Regime.OPEN, seq);
         vm.expectRevert(NightShiftHook.StaleSeq.selector);
-        hook.setRegime(poolId, Regime.OPEN, seq); // seq shared across callbacks
+        hook.setRegime(poolId, Regime.CLOSED, seq); // replay on the regime channel
         vm.stopPrank();
     }
 
@@ -105,7 +109,7 @@ contract NightShiftHookTest is HookFixture {
 
     function test_setState_storesAndClampsRisk() public {
         _setAnchor(-77, 12_345);
-        (int24 a, uint40 updatedAt, uint16 r,,,,,) = hook.poolState(poolId);
+        (int24 a, uint40 updatedAt, uint16 r,,,,,,) = hook.poolState(poolId);
         assertEq(a, -77);
         assertEq(updatedAt, block.timestamp);
         assertEq(r, 10_000);
@@ -155,6 +159,23 @@ contract NightShiftHookTest is HookFixture {
         assertEq(aw, cfg.baseClosed + uint256(cfg.riskFeeMax) * 4000 / 10_000 + uint256(cfg.driftSlope) * 250);
     }
 
+    /// @dev README §8.3: a late callback (stored risk 0) can't make an away trade cheap — local divergence floors risk.
+    function test_localDivergence_floorsRisk() public {
+        _setAnchor(300, 0); // |d| = 300 = full scale → local risk = weightDivergence
+        (uint24 aw,) = hook.quoteFee(key, true);
+        uint256 expected = cfg.baseClosed + uint256(cfg.riskFeeMax) * riskCfg.weightDivergence / 10_000
+            + uint256(cfg.driftSlope) * (300 + cfg.maxAwayMove / 2);
+        assertEq(aw, expected);
+    }
+
+    function test_forceRegime_onlyController() public {
+        vm.expectRevert(NightShiftHook.NotController.selector);
+        hook.forceRegime(poolId, Regime.OPEN);
+        vm.prank(controller);
+        hook.forceRegime(poolId, Regime.OPEN);
+        assertEq(uint8(hook.regimeOf(poolId)), uint8(Regime.OPEN));
+    }
+
     function test_open_baseFee() public {
         _setRegime(Regime.OPEN);
         _setAnchor(200, 0);
@@ -182,13 +203,16 @@ contract NightShiftHookTest is HookFixture {
 
     function test_closed_awayMove_cappedAndShrinksWithRisk() public {
         _setAnchor(-200, 0); // pool above anchor: tick-up is away
+        // stored risk 0, but local divergence (200 of 300 ticks) floors riskUsed at 2/3 of its weight
+        uint256 local = uint256(riskCfg.weightDivergence) * 200 / riskCfg.divergenceFullTicks;
+        int24 cap = int24(int256(uint256(cfg.maxAwayMove) * (20_000 - local) / 20_000));
         vm.expectRevert(_wrapped(IHooks.afterSwap.selector, FeeMath.AwayMoveTooLarge.selector));
-        _swapTo(false, int24(cfg.maxAwayMove) + 1);
-        _swapTo(false, int24(cfg.maxAwayMove)); // exactly the cap: ok
+        _swapTo(false, cap + 1);
+        _swapTo(false, cap); // exactly the cap: ok
 
         _setAnchor(-200, 10_000); // max risk halves the allowed step
         vm.expectRevert(_wrapped(IHooks.afterSwap.selector, FeeMath.AwayMoveTooLarge.selector));
-        _swapTo(false, int24(cfg.maxAwayMove) + int24(cfg.maxAwayMove / 2) + 1);
+        _swapTo(false, cap + int24(cfg.maxAwayMove / 2) + 1);
     }
 
     function test_open_noMoveCaps() public {

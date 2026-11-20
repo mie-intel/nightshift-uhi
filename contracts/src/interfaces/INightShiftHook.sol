@@ -14,6 +14,12 @@ interface INightShiftHook {
     /// @notice Set the pool regime. Only Controller; `seq` must exceed the pool's last seq.
     function setRegime(PoolId id, Regime regime, uint64 seq) external;
 
+    /// @notice Set the regime without a seq (Controller fallbacks only: calendar sync, reconcile timeout).
+    function forceRegime(PoolId id, Regime regime) external;
+
+    /// @notice Current regime of a pool.
+    function regimeOf(PoolId id) external view returns (Regime);
+
     /// @notice Fee a swap in direction `zeroForOne` would pay right now.
     function quoteFee(PoolKey calldata key, bool zeroForOne) external view returns (uint24 fee, bool away);
 }
