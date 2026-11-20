@@ -27,3 +27,7 @@ coverage/
 
 # Atrium course material (not ours to publish)
 guideline.pdf
+
+# dashboard build output
+app/dist/
+*.tsbuildinfo

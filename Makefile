@@ -4,7 +4,7 @@ C := contracts
 SHELL := /bin/bash
 
 .PHONY: help install build build-reactive test test-scenarios coverage slither fmt fmt-check \
-        deploy-testnet deploy-origin deploy-dest deploy-reactive deploy-controller wire-reactive \
+        deploy-testnet deploy-origin deploy-dest deploy-reactive deploy-controller wire-reactive deploy-faucet app-build \
         fund-reactive e2e-testnet record report app check-context
 
 # Load .env (never committed) into recipe shells. Override per-chain forge flags if a chain needs e.g. --legacy.
@@ -67,6 +67,9 @@ deploy-controller: ## 03: Controller on Base Sepolia + hook.initController
 wire-reactive: ## 04: reactive.setController + subscribe (Lasna)
 	$(ENV) cd $(C) && $(REACTIVE_BUILD) forge script script/04_WireReactive.s.sol $(REACTIVE_SKIP) --rpc-url $$RPC_LASNA --broadcast $(LASNA_FLAGS)
 
+deploy-faucet: ## 06: public demo-token faucet on Base Sepolia (for dashboard swaps)
+	$(ENV) cd $(C) && forge script script/06_DeployFaucet.s.sol --rpc-url $$RPC_BASE_SEPOLIA --broadcast
+
 fund-reactive: ## get lREACT on Lasna: send LREACT_ETH (default 0.05ether) Base Sepolia ETH to the faucet (1 ETH = 100 lREACT)
 	$(ENV) cast send $$LREACT_FAUCET_BASE_SEPOLIA --value $${LREACT_ETH:-0.05ether} --rpc-url $$RPC_BASE_SEPOLIA --private-key $$REACTIVE_PRIVATE_KEY
 
@@ -79,5 +82,8 @@ record: ## start recorder, all chains (Phase 12)
 report: ## generate report JSON/CSV (Phase 12)
 	@echo "report not implemented yet (Phase 12). See TODO.md." && exit 1
 
-app: ## run dashboard dev server (Phase 13)
-	@echo "app not implemented yet (Phase 13). See TODO.md." && exit 1
+app: ## run dashboard dev server (app/, Vite) → http://localhost:5173
+	cd app && pnpm install && pnpm dev
+
+app-build: ## production build of the dashboard → app/dist (static)
+	cd app && pnpm install && pnpm build

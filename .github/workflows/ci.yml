@@ -23,7 +23,7 @@ jobs:
       - name: Build
         run: forge build
       - name: Build (reactive profile)
-        run: FOUNDRY_PROFILE=reactive forge build
+        run: FOUNDRY_PROFILE=reactive forge build --skip "*/V4Artifacts.sol" --skip "*/01_DeployDestination.s.sol"
       - name: Test
         run: forge test -vvv
 

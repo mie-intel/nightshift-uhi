@@ -1,10 +1,29 @@
 {
   "name": "@nightshift/app",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
-  "description": "NightShift dashboard (Phase 13).",
+  "type": "module",
+  "description": "NightShift dashboard — Vite + React (ADR-016).",
   "scripts": {
-    "lint": "echo 'app: no sources yet (Phase 13)'",
-    "build": "echo 'app: no build yet (Phase 13)'"
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "tsc -b --noEmit"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.108.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "viem": "^2.58.2",
+    "wagmi": "^3.7.11"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
   }
 }
