@@ -23,7 +23,7 @@ import {PriceMath} from "../../src/libraries/PriceMath.sol";
 ///         while a trade pushing away from fair value is capped.
 contract GateOneLoopTest is HookFixture, ReactiveHarness {
     uint256 constant ORIGIN = 11_155_111; // Ethereum Sepolia (virtual)
-    uint256 constant DEST = 1301; // Unichain Sepolia (virtual)
+    uint256 constant DEST = 84_532; // Base Sepolia (virtual)
 
     address callbackProxy = makeAddr("callbackProxy");
     address trader = makeAddr("trader");

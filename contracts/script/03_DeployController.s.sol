@@ -13,30 +13,28 @@ interface IHookAdmin {
     function initController(address controller) external;
 }
 
-/// @title 03 — Destination (Unichain Sepolia): Controller pinned to (callback proxy, reactive), funded for callbacks;
+/// @title 03 — Destination (Base Sepolia): Controller pinned to (callback proxy, reactive), funded for callbacks;
 ///        hook accepts only this Controller from now on.
-/// @notice `forge script script/03_DeployController.s.sol --rpc-url $RPC_UNICHAIN_SEPOLIA --broadcast`
+/// @notice `forge script script/03_DeployController.s.sol --rpc-url $RPC_BASE_SEPOLIA --broadcast`
 contract DeployController is Script {
     using stdJson for string;
 
     function run() external {
         string memory cfg = NightShiftConfig.load("testnet");
         uint256 pk = vm.envUint("DEPLOYER_PRIVATE_KEY");
-        address hook = Deployments.addr("testnet", "unichainSepolia", "hook");
+        address hook = Deployments.addr("testnet", "destination", "hook");
         address reactive = Deployments.addr("testnet", "lasna", "reactive");
 
         vm.startBroadcast(pk);
         NightShiftController ctrl = new NightShiftController{value: cfg.readUint(".funding.controllerWei")}(
-            cfg.readAddress(".chains.unichainSepolia.callbackProxy"), reactive, INightShiftHook(hook)
+            cfg.readAddress(".chains.destination.callbackProxy"), reactive, INightShiftHook(hook)
         );
         IHookAdmin(hook).initController(address(ctrl));
         vm.stopBroadcast();
 
         // 01 wrote a placeholder `controller` key; replace just that value (JSON string)
         vm.writeJson(
-            string.concat('"', vm.toString(address(ctrl)), '"'),
-            Deployments.path("testnet"),
-            ".unichainSepolia.controller"
+            string.concat('"', vm.toString(address(ctrl)), '"'), Deployments.path("testnet"), ".destination.controller"
         );
         console.log("NightShiftController", address(ctrl));
     }

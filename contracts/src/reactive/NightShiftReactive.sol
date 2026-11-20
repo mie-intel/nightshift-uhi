@@ -18,7 +18,7 @@ contract NightShiftReactive is AbstractReactive {
 
     /// @notice Admin (subscribe, set controller).
     address public immutable owner;
-    /// @notice Destination chain id (e.g. Unichain Sepolia 1301).
+    /// @notice Destination chain id (e.g. Base Sepolia 84532).
     uint256 public immutable destChainId;
     /// @notice Destination pool id.
     bytes32 public immutable poolId;

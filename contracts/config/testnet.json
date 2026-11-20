@@ -162,10 +162,11 @@
     "ethSepolia": {
       "chainId": 11155111
     },
-    "unichainSepolia": {
-      "chainId": 1301,
-      "poolManager": "0x00b036b58a818b1bc34d502d3fe730db729e62ac",
-      "callbackProxy": "0x775c9B990ADe401060B78D0e98684eEf8d2466C1"
+    "destination": {
+      "name": "baseSepolia",
+      "chainId": 84532,
+      "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
+      "callbackProxy": "0x476F44b11F5C942c58f4c8E3d0300E5710743585"
     },
     "lasna": {
       "chainId": 5318007
@@ -182,7 +183,7 @@
     "deployerStockMint": 1000000000000000000000
   },
   "funding": {
-    "_note": "wei of native token: lREACT on Lasna, ETH on Unichain Sepolia",
+    "_note": "wei of native token: lREACT on Lasna, ETH on the destination chain (Base Sepolia)",
     "reactiveWei": 2000000000000000000,
     "controllerWei": 10000000000000000
   }

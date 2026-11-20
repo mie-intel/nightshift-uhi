@@ -12,7 +12,7 @@ contract WireReactive is Script {
     function run() external {
         uint256 pk = vm.envUint("REACTIVE_PRIVATE_KEY");
         NightShiftReactive rx = NightShiftReactive(payable(Deployments.addr("testnet", "lasna", "reactive")));
-        address ctrl = Deployments.addr("testnet", "unichainSepolia", "controller");
+        address ctrl = Deployments.addr("testnet", "destination", "controller");
         require(ctrl != address(0), "run 03 first");
 
         vm.startBroadcast(pk);

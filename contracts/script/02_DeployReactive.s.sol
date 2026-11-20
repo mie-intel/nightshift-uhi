@@ -19,11 +19,11 @@ contract DeployReactive is Script {
 
         vm.startBroadcast(pk);
         NightShiftReactive rx = new NightShiftReactive{value: cfg.readUint(".funding.reactiveWei")}(
-            cfg.readUint(".chains.unichainSepolia.chainId"),
-            Deployments.b32("testnet", "unichainSepolia", "poolId"),
+            cfg.readUint(".chains.destination.chainId"),
+            Deployments.b32("testnet", "destination", "poolId"),
             cfg.readUint(".chains.ethSepolia.chainId"),
             Deployments.addr("testnet", "ethSepolia", "mockIssuer"),
-            Deployments.flag("testnet", "unichainSepolia", "invert"),
+            Deployments.flag("testnet", "destination", "invert"),
             0, // same decimals on every chain (config.demo)
             NightShiftConfig.anchorGasLimit(cfg)
         );

@@ -52,22 +52,22 @@ deploy-testnet: deploy-origin deploy-dest deploy-reactive deploy-controller wire
 deploy-origin: ## 00: demo tokens + MockIssuer on Ethereum Sepolia
 	$(ENV) cd $(C) && forge script script/00_DeployOrigin.s.sol --rpc-url $$RPC_ETH_SEPOLIA --broadcast
 
-deploy-dest: ## 01: tokens, mined hook, pool, routers, liquidity on Unichain Sepolia
-	$(ENV) cd $(C) && forge script script/01_DeployDestination.s.sol --rpc-url $$RPC_UNICHAIN_SEPOLIA --broadcast
+deploy-dest: ## 01: tokens, mined hook, pool, routers, liquidity on Base Sepolia
+	$(ENV) cd $(C) && forge script script/01_DeployDestination.s.sol --rpc-url $$RPC_BASE_SEPOLIA --broadcast
 
 deploy-reactive: ## 02: NightShiftReactive on Lasna (funded with lREACT)
 	$(ENV) cd $(C) && $(REACTIVE_BUILD) forge script script/02_DeployReactive.s.sol $(REACTIVE_SKIP) --rpc-url $$RPC_LASNA --broadcast $(LASNA_FLAGS)
 
-deploy-controller: ## 03: Controller on Unichain Sepolia + hook.initController
-	$(ENV) cd $(C) && forge script script/03_DeployController.s.sol --rpc-url $$RPC_UNICHAIN_SEPOLIA --broadcast
+deploy-controller: ## 03: Controller on Base Sepolia + hook.initController
+	$(ENV) cd $(C) && forge script script/03_DeployController.s.sol --rpc-url $$RPC_BASE_SEPOLIA --broadcast
 
 wire-reactive: ## 04: reactive.setController + subscribe (Lasna)
 	$(ENV) cd $(C) && $(REACTIVE_BUILD) forge script script/04_WireReactive.s.sol $(REACTIVE_SKIP) --rpc-url $$RPC_LASNA --broadcast $(LASNA_FLAGS)
 
-fund-reactive: ## get lREACT: send LREACT_ETH (default 0.05ether) SepETH to the Lasna faucet
-	$(ENV) cast send $$LREACT_FAUCET_SEPOLIA --value $${LREACT_ETH:-0.05ether} --rpc-url $$RPC_ETH_SEPOLIA --private-key $$REACTIVE_PRIVATE_KEY
+fund-reactive: ## get lREACT on Lasna: send LREACT_ETH (default 0.05ether) Base Sepolia ETH to the faucet (1 ETH = 100 lREACT)
+	$(ENV) cast send $$LREACT_FAUCET_BASE_SEPOLIA --value $${LREACT_ETH:-0.05ether} --rpc-url $$RPC_BASE_SEPOLIA --private-key $$REACTIVE_PRIVATE_KEY
 
-e2e-testnet: ## 05: issuer price +MOVE_BPS (default 200) + mint on Sepolia → expect Lasna react + Unichain callback
+e2e-testnet: ## 05: issuer price +MOVE_BPS (default 200) + mint on Sepolia → expect Lasna react + Base Sepolia callback
 	$(ENV) cd $(C) && forge script script/05_TriggerIssuerMint.s.sol --rpc-url $$RPC_ETH_SEPOLIA --broadcast
 
 record: ## start recorder, all chains (Phase 12)

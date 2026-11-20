@@ -23,9 +23,9 @@ import {PoolConfig} from "../src/libraries/Types.sol";
 import {NightShiftConfig} from "./utils/NightShiftConfig.sol";
 import {Deployments} from "./utils/Deployments.sol";
 
-/// @title 01 — Destination chain (Unichain Sepolia): demo tokens, mined hook, dynamic-fee pool at the issuer price,
+/// @title 01 — Destination chain (Base Sepolia; set in config.chains.destination): demo tokens, mined hook, dynamic-fee pool at the issuer price,
 ///        test routers, seed liquidity.
-/// @notice `forge script script/01_DeployDestination.s.sol --rpc-url $RPC_UNICHAIN_SEPOLIA --broadcast`
+/// @notice `forge script script/01_DeployDestination.s.sol --rpc-url $RPC_BASE_SEPOLIA --broadcast`
 contract DeployDestination is Script {
     using stdJson for string;
 
@@ -51,7 +51,7 @@ contract DeployDestination is Script {
         Ctx memory c;
         c.cfg = NightShiftConfig.load("testnet");
         c.pc = NightShiftConfig.poolConfig(c.cfg);
-        c.pm = IPoolManager(c.cfg.readAddress(".chains.unichainSepolia.poolManager"));
+        c.pm = IPoolManager(c.cfg.readAddress(".chains.destination.poolManager"));
         uint256 pk = vm.envUint("DEPLOYER_PRIVATE_KEY");
         c.me = vm.addr(pk);
 
@@ -119,7 +119,7 @@ contract DeployDestination is Script {
         vm.serializeInt(o, "initTick", c.initTick);
         vm.serializeAddress(o, "controller", address(0)); // set by 03
         string memory out = vm.serializeBytes32(o, "poolId", PoolId.unwrap(c.key.toId()));
-        Deployments.write("testnet", "unichainSepolia", out);
+        Deployments.write("testnet", "destination", out);
         console.log("hook", address(c.hook));
         console.logBytes32(PoolId.unwrap(c.key.toId()));
     }

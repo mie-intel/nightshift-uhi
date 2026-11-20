@@ -9,7 +9,7 @@ import {NightShiftConfig} from "./utils/NightShiftConfig.sol";
 import {Deployments} from "./utils/Deployments.sol";
 
 /// @title 05 — Origin (Ethereum Sepolia): move the issuer price by MOVE_BPS (default +200 = +2%) and mint 1 share.
-///        The `Minted` event is what Reactive witnesses → onAnchor callback on Unichain Sepolia.
+///        The `Minted` event is what Reactive witnesses → onAnchor callback on the destination chain (Base Sepolia).
 /// @notice `MOVE_BPS=200 forge script script/05_TriggerIssuerMint.s.sol --rpc-url $RPC_ETH_SEPOLIA --broadcast`
 contract TriggerIssuerMint is Script {
     using stdJson for string;
