@@ -383,7 +383,7 @@ On `CLOSED → REOPEN_PENDING`, the reactive contract opens an **open window** (
 
 ### 8.2 Ratchet (closed-market risk only grows)
 
-- In `CLOSED`: `risk = max(risk, raw)` — **trades in our own pool can never lower it.**
+- In `CLOSED` (and `REOPEN_PENDING`/`HALTED`, until reconciliation): `risk = max(risk, raw)` — **trades in our own pool can never lower it.** (ADR-012)
 - In `OPEN`: `risk = raw` (no ratchet).
 - At reconciliation: `risk = 0`, `lastOpenAnchorAt = now`.
 
@@ -407,12 +407,14 @@ Let `d = currentTick − anchorTick` (before the swap). `zeroForOne` moves the t
 
 ### 9.2 Fee schedule
 
-| Regime           | Toward anchor                | Away from anchor             |
-| ---------------- | ---------------------------- | ---------------------------- | ------ | ------------------------------------------------------------------------- | --- | ------------------ |
-| `OPEN`           | `baseOpen`                   | `baseOpen + driftSlopeOpen · | d      | ` (small)                                                                 |
-| `CLOSED`         | `baseClosed + captureShare · | d                            | · 100` | `baseClosed + riskFeeMax · riskUsed/10 000 + min(driftMax, driftSlope · ( | d   | + maxAwayMove/2))` |
-| `REOPEN_PENDING` | `baseOpen + reopenSurcharge` | same as CLOSED away          |
-| `HALTED`         | revert `MarketHalted()`      | revert `MarketHalted()`      |
+| Regime           | Toward anchor                                  | Away from anchor                                                                       |
+| ---------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `OPEN`           | `baseOpen`                                     | `baseOpen + driftSlopeOpen · absD` (small)                                             |
+| `CLOSED`         | `baseClosed + captureShare · absD / 100`       | `baseClosed + riskFeeMax · riskUsed / 10 000 + min(driftMax, driftSlope · (absD + maxAwayMove/2))` |
+| `REOPEN_PENDING` | `baseOpen + reopenSurcharge`                   | same as CLOSED away                                                                    |
+| `HALTED`         | revert `MarketHalted()`                        | revert `MarketHalted()`                                                                |
+
+`absD = |currentTick − anchorTick|`. `captureShare` is in bps and 1 tick ≈ 1 bp = 100 pips, so `captureShare · absD / 100` pips (ADR-012). All fees capped at `maxFeeClosed`.
 
 - **Toward = repair flow.** It is informed arbitrage that moves the pool to fair value. We **serve** it and recapture a share of the gap for LPs (`captureShare`, default 30% of the gap: a 200 bp gap → +60 bp fee; the arbitrageur still keeps ~140 bp, so the price converges).
 - **Away = pushing price away from fair value** (e.g. the HIMS-style squeeze). It pays steeply, scaled by risk, priced at the midpoint of a full allowed step so splitting a swap never makes the move cheaper (idea from Gapguard, MIT).

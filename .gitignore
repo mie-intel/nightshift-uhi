@@ -23,3 +23,6 @@ recorder/data/
 lcov.info
 coverage/
 .DS_Store
+
+# Atrium course material (not ours to publish)
+guideline.pdf

@@ -72,3 +72,15 @@ inclusion: manual
 - **Context:** Real Ondo mint/redeem is mainnet-only (Ethereum/BNB). Reactive forbids mixing mainnet and testnet, and our reactive contract runs on Lasna (testnet), so a Lasna reactive contract cannot witness real Ondo events. User chose to focus on testnet only.
 - **Decision:** Build, demo and submit entirely on the testnet topology (ADR-005). The issuer witness is always `MockIssuer` (`Minted(address,uint256,uint256)`) on Ethereum Sepolia; price moves driven by the flow bot. **Phase 11.M (mainnet showcase) is out of scope.** G0.1 and G0.7 are N/A (both were mainnet-showcase concerns).
 - **Consequences:** Reactive is unchanged and still core — it still witnesses multiple testnet origins (Eth Sepolia + Base Sepolia), computes on Lasna, and callbacks to Unichain Sepolia between trades; Gate 1 is still a real Lasna→Unichain-Sepolia callback. Only the issuer *data source* is mocked (unavoidable on testnet), not Reactive. No mainnet keys/funds, no Ondo-ABI work. `mainnet.json` kept as a stub only.
+
+## ADR-012 Phase 3 library clarifications (fee units, ratchet scope, rounding)
+- **Date:** 2026-11-20 · **Status:** Accepted
+- **Context:** Writing `FeeMath`/`RiskMath` test-first exposed two spec gaps. (1) README §9.2 wrote the toward fee as `captureShare · |d| · 100`; with `captureShare` in bps that is 10 000× too large (200-tick gap → 6e7 pips). (2) §8.2 defined the ratchet only for `CLOSED`/`OPEN`, leaving `REOPEN_PENDING`/`HALTED` undefined.
+- **Decision:** (1) Toward fee while CLOSED = `baseClosed + captureShare · absD / 100` pips (30% of a 200 bp gap = 6 000 pips = 60 bp, matching the README's own example). (2) Every non-OPEN regime ratchets (`max(prev, raw)`); only reconciliation resets risk to 0. (3) `PriceMath.tickFromRatio` floors like `TickMath`; exactly on a tick boundary it may return one tick lower (spec tolerance ±1). (4) Neutral (deadband) swaps pay the toward fee, so they are bound by the tighter `overshootCap`, not `maxAwayMove` — otherwise a neutral swap would be a cheap away swap. (5) Move caps and overshoot apply only outside OPEN.
+- **Consequences:** README §9.2 and §8.2 updated. Tests in `test/unit/{FeeMath,RiskMath,PriceMath}.t.sol` pin the behaviour.
+
+## ADR-013 MVP scope aligned to the Atrium rubric; tests-first
+- **Date:** 2026-11-20 · **Status:** Accepted
+- **Context:** Atrium rubric (guideline.pdf): Original Idea 30%, Unique Execution 25%, Impact 20%, Functionality 15%, Presentation 10%. Testnet deployment and frontend not mandatory; tests OR frontend required. 13 days left with no contract code.
+- **Decision:** Tests-first, no dashboard unless the core is done by ~29 Nov. Must-have: Gate 1, hook, reactive (≥2 witness chains, quorum, Cron regime), one vault (recenter + reconcile vs HODL + HWM), scenarios S2/S3/S5/S6 vs static pool, one recorded live loop. Cut to slides: corporate actions (S7), `migrate`, mandate timelocks, multiple presets, leaderboard UI. See hookathon.md.
+- **Consequences:** TODO phases 9 (corporate actions), 13 (dashboard) and parts of 7/10/12 become stretch. Submission README must list only built integrations.
