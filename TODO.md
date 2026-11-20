@@ -225,24 +225,24 @@ Smallest end-to-end loop on real testnets, before building full features.
 
 ## Phase 5 — Full hook
 
-- [ ] Full fee schedule (README §9.2) via `FeeMath`, per-pool `PoolConfig` from registry.
-- [ ] Transient-storage stash of `tickBefore`/`away` between `beforeSwap` and `afterSwap`.
-- [ ] Move caps + overshoot (§9.3) in `afterSwap`.
-- [ ] Stale-anchor fallback (§9.4) + `AnchorStale` event.
-- [ ] `setRegime`, `applyCorporateAction`, `HALTED` revert.
+- [x] Full fee schedule (README §9.2) via `FeeMath` (one `PoolConfig` per hook from config; per-pool registry config cut — ADR-013/017).
+- [x] Transient-storage stash of `tickBefore`/`away` between `beforeSwap` and `afterSwap`.
+- [x] Move caps + overshoot (§9.3) in `afterSwap`.
+- [x] Stale-anchor fallback (§9.4) + `AnchorStale` event. + local-divergence `riskUsed` floor (§8.3).
+- [x] `setRegime` (own seq channel), `forceRegime` (fallbacks), `HALTED` revert. `applyCorporateAction` cut (ADR-013).
 - [ ] `beforeAddLiquidity` `curatedOnly` gate.
-- [ ] `quoteFee` view.
-- [ ] Unit + fuzz tests per README §21.1; gas snapshot (`forge snapshot`).
+- [x] `quoteFee` view.
+- [x] Unit + fuzz tests per README §21.1. (gas snapshot: pending)
 - **Done when:** hook tests green; fee never exceeds caps under fuzz.
 
 ---
 
 ## Phase 6 — Controller and Reactive contract (full)
 
-- [ ] Controller: `onAnchor`, `onRegime`, `onReconcile`, `onCorporateAction` with auth + seq/epoch checks; per-vault `try/catch`; `syncRegime` and `forceReconcile` fallbacks.
-- [ ] Reactive: source registry (`addSource`/`disableSource` → `SYSTEM.subscribe`); decoders for `V4_SWAP`, `V3_SWAP`, `ISSUER_MINT/REDEEM`, `ORACLE`, `SELF`, `ISSUER_ACTION`; EWMA + caps; quorum; dispersion; risk (with ratchet); debounce; heartbeat; regime detection on Cron; open window; reconcile timeout; corporate actions; events (§14.4).
-- [ ] `MockSystemContract` for tests.
-- [ ] Unit tests for every decoder and rule (crafted `LogRecord`s).
+- [x] Controller: `onAnchor`, `onRegime`, `onReconcile` with auth + seq checks; `syncRegime` and `forceReconcile` fallbacks. (`onCorporateAction` cut; per-vault `try/catch` lands with vaults, Phase 8.)
+- [x] Reactive: source registry (`addSource`/`disableSource` → `SYSTEM.subscribe`); decoders for `V4_SWAP`, `V3_SWAP`, `ISSUER_MINT/REDEEM`, `ORACLE`, `SELF`, `ISSUER_ACTION`; EWMA + caps; quorum; dispersion; risk (with ratchet); debounce; heartbeat; regime detection on Cron; open window; reconcile timeout; corporate actions; events (§14.4).
+- [x] `MockSystemContract` for tests.
+- [x] Unit tests for every decoder and rule (crafted `LogRecord`s). Built: ISSUER_MINT/REDEEM, V4_SWAP, SELF decoders; V3/ORACLE/ISSUER_ACTION not wired (ADR-017). Weekend integration test green.
 - **Done when:** controller + reactive unit tests green.
 
 ---

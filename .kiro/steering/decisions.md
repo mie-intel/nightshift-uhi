@@ -108,3 +108,19 @@ inclusion: manual
 - **Context:** User wants a simple dashboard that works and is very easy to operate, prioritising performance and small size. All data is on-chain and read client-side; no server rendering is needed.
 - **Decision:** `app/` = Vite + React + TS + wagmi/viem + Tailwind v4, single page, injected wallet only, hand-rolled SVG instead of Recharts, system fonts. Warm light-brown palette with WCAG AA contrast; few eyebrow labels. Addresses from `deployments/testnet.json`.
 - **Consequences:** Static deploy anywhere. Rubric impact: easier for judges (Functionality/Presentation) at ~1–2 days cost; contracts work (Phase 5/6) continues in parallel. A small public demo-token faucet contract is needed so judges can swap.
+
+## ADR-017 Phase 5/6 build decisions (full hook, controller, reactive)
+- **Date:** 2026-11-20 · **Status:** Accepted (supersedes ADR-007 Cron100)
+- **Context:** Implementing the Witness Quorum, Cron regime and fallbacks against real Lasna costs and callback delivery semantics.
+- **Decision:**
+  1. **Cron1000 (~17 min), not Cron100.** One `react()` costs ~0.014 lREACT at 100 gwei; Cron100 (~720 ticks/day) ≈ 10 lREACT/day, Cron1000 ≈ 1 lREACT/day. Topic comes from `config.cron.topic0` (reactive constructor). Regime transitions may lag up to ~17 min; the destination `syncRegime` fallback covers it. Reactive gets an owner `withdraw` so funds aren't stranded on redeploy.
+  2. **Two seq channels on the hook** (`lastSeq` anchor, `lastRegimeSeq` regime/reconcile). Reactive keeps one monotonic counter; callbacks are separate transactions and may land out of order, so a shared channel could drop a regime change as stale. Invariant 7 holds per channel.
+  3. **Fallbacks don't consume seq:** `hook.forceRegime` (onlyController) used by `syncRegime` (calendar) and `forceReconcile` (timeout).
+  4. **`onReconcile` carries `seq`** (README §13.1 signature extended) and sets the regime to OPEN; reconcile resets the risk ratchet, then OPEN risk follows the raw score. Vault scoring attaches here in Phase 8.
+  5. **Open price:** the anchor computed during the open window with issuer weight ×`issuerOpenBoost` (instead of a separate window buffer).
+  6. **Decoders built:** ISSUER_MINT/REDEEM (quote/shares), V4_SWAP + SELF (post-swap tick). V3_SWAP/ORACLE/ISSUER_ACTION not wired. `minNotional` applies to issuer events only.
+  7. **Influence cap is per print:** a +4% move reaches the anchor over a few prints (first print capped at `maxJumpTicks`), then the hook updates only when the move ≥ `minAnchorDeltaTicks`.
+  8. **Hook local-divergence floor:** `riskUsed = max(stored, weightDivergence·min(1, |d|/divergenceFull))` (README §8.3); hook constructor takes `RiskParams`.
+  9. **Topology:** issuer (Ethereum Sepolia, w5) + sibling v4 pool B (Base Sepolia, plain pool, same pair, w2) + SELF → quorum spans 2 chains. Sibling A on Sepolia dropped (cost/time).
+  10. **PriceMath precision fix:** ratios < 2^64 use `sqrt(q·2^192/b)`; fuzz found tick errors for tiny ratios via the X128 path (regression test added).
+- **Consequences:** 140 tests green incl. a full local weekend (`test/integration/WeekendLoop.t.sol`). `react()` at 16 sources ≈ 116k gas. Redeploy of destination + reactive required (new hook/pool/controller/faucet); MockIssuer on Sepolia reused.
