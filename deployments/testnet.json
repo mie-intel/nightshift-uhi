@@ -1,5 +1,25 @@
 {
-  "ethSepolia": {},
-  "destination": {},
-  "lasna": {}
+  "ethSepolia": {
+    "chainId": 11155111,
+    "dStock": "0x48B9ce651438AddB21c577e845De4Ae74D888459",
+    "dUsd": "0xD6B7BEF49c8E7c14F7b37ee3f1cdCd916d56EBC1",
+    "mockIssuer": "0x83Ec94D9fc79a41DF16652d4F359930D1dF22B58"
+  },
+  "destination": {
+    "chainId": 84532,
+    "controller": "0x7c5bAdFE78395927C29F683ad4a292DCD1B51e66",
+    "dStock": "0x5c34094CCc335B38092924C07cAC0D00D36a1c3b",
+    "dUsd": "0x29F4cE0cBc1Cc2fE47953dCB262c46e1BC45C0Fb",
+    "hook": "0x5786976C0527ECae71586b51226e86403343d8C0",
+    "initTick": 230271,
+    "invert": true,
+    "liquidityRouter": "0x18C7b5c9C3e82a1bC5D83027E92465938Ff47cE2",
+    "poolId": "0x40a1bf5ad017a6c437c8175c355ffac3387d0fc655ab06c6b8eb38695cdbee23",
+    "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
+    "swapRouter": "0x0809e4e6016eF2c587B1571DA6D193993F31bB60"
+  },
+  "lasna": {
+    "chainId": 5318007,
+    "reactive": "0x5c34094CCc335B38092924C07cAC0D00D36a1c3b"
+  }
 }

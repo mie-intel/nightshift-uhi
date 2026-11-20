@@ -10,6 +10,9 @@ SHELL := /bin/bash
 # Load .env (never committed) into recipe shells. Override per-chain forge flags if a chain needs e.g. --legacy.
 ENV := set -a; [ -f .env ] && . ./.env; set +a;
 LASNA_FLAGS ?=
+# Sepolia's current gas schedule prices CREATE far above forge's local simulation (~6.6x: node 4.69M vs local 0.71M for a token),
+# so origin txs need a larger estimate multiplier. Gas price there is ~0, so this costs nothing extra.
+ORIGIN_FLAGS ?= --gas-estimate-multiplier 1000 --slow
 REACTIVE_BUILD := FOUNDRY_PROFILE=reactive
 REACTIVE_SKIP := --skip "*/V4Artifacts.sol" --skip "*/01_DeployDestination.s.sol"
 
@@ -50,7 +53,7 @@ check-context: ## verify @imports in CLAUDE.md + .claude/rules
 deploy-testnet: deploy-origin deploy-dest deploy-reactive deploy-controller wire-reactive ## full testnet deploy (00-04) → deployments/testnet.json
 
 deploy-origin: ## 00: demo tokens + MockIssuer on Ethereum Sepolia
-	$(ENV) cd $(C) && forge script script/00_DeployOrigin.s.sol --rpc-url $$RPC_ETH_SEPOLIA --broadcast
+	$(ENV) cd $(C) && forge script script/00_DeployOrigin.s.sol --rpc-url $$RPC_ETH_SEPOLIA --broadcast $(ORIGIN_FLAGS)
 
 deploy-dest: ## 01: tokens, mined hook, pool, routers, liquidity on Base Sepolia
 	$(ENV) cd $(C) && forge script script/01_DeployDestination.s.sol --rpc-url $$RPC_BASE_SEPOLIA --broadcast
@@ -68,7 +71,7 @@ fund-reactive: ## get lREACT on Lasna: send LREACT_ETH (default 0.05ether) Base 
 	$(ENV) cast send $$LREACT_FAUCET_BASE_SEPOLIA --value $${LREACT_ETH:-0.05ether} --rpc-url $$RPC_BASE_SEPOLIA --private-key $$REACTIVE_PRIVATE_KEY
 
 e2e-testnet: ## 05: issuer price +MOVE_BPS (default 200) + mint on Sepolia → expect Lasna react + Base Sepolia callback
-	$(ENV) cd $(C) && forge script script/05_TriggerIssuerMint.s.sol --rpc-url $$RPC_ETH_SEPOLIA --broadcast
+	$(ENV) cd $(C) && forge script script/05_TriggerIssuerMint.s.sol --rpc-url $$RPC_ETH_SEPOLIA --broadcast $(ORIGIN_FLAGS)
 
 record: ## start recorder, all chains (Phase 12)
 	@echo "record not implemented yet (Phase 12). See TODO.md." && exit 1

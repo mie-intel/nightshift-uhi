@@ -30,6 +30,7 @@ fail_on_revert = true
 [profile.reactive]
 src = "src"
 out = "out-reactive"
+cache_path = "cache-reactive" # separate cache: sharing it made `forge verify` pick the wrong solc for default builds
 libs = ["lib"]
 solc = "0.8.29"
 evm_version = "cancun"

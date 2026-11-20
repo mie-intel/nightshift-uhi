@@ -2,6 +2,7 @@
 contracts/out/
 contracts/out-reactive/
 contracts/cache/
+contracts/cache-reactive/
 contracts/broadcast/**/dry-run/
 out/
 cache/
