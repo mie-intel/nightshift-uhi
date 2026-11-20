@@ -31,3 +31,6 @@ guideline.pdf
 # dashboard build output
 app/dist/
 *.tsbuildinfo
+
+# personal notes (Indonesian), not part of the submission
+PENJELASAN.md
