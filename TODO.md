@@ -16,7 +16,7 @@
 | Dates        | Phases                  | Milestone                                                                                   |
 | ------------ | ----------------------- | ------------------------------------------------------------------------------------------- |
 | 18–19 Nov    | 0, 1, 2                 | Context ready, Gate 0 answers, repo builds                                                  |
-| 19–21 Nov    | 3, 4 (walking skeleton) | **Gate 1: first real Reactive callback on Unichain Sepolia**                                |
+| 19–21 Nov    | 3, 4 (walking skeleton) | **Gate 1: first real Reactive callback on Base Sepolia** (ADR-015)                                |
 | 21–25 Nov    | 5–9                     | Full contracts, local E2E harness, testnet redeploy                                         |
 | 24–26 Nov    | 10                      | Scenarios S1–S8 + three-pool comparison                                                     |
 | 25–30 Nov    | 11, 12                  | Live recording: Thanksgiving, Black Friday, weekend (testnet; mainnet showcase if approved) |
@@ -214,10 +214,10 @@ Smallest end-to-end loop on real testnets, before building full features.
 - [x] `DemoToken`, `MockIssuer` (README §13.3).
 - [x] `NightShiftHook` v0: permissions, dynamic fee required, `setState` (onlyController), fee = `baseClosed` + simple away surcharge; emits `SwapObserved`.
 - [x] `NightShiftController` v0: authenticated `onAnchor` → `hook.setState`; `seq` check.
-- [x] `NightShiftReactive` v0: subscribe to `MockIssuer.Minted` on Ethereum Sepolia; on event compute tick (PriceMath), request `onAnchor` callback to Unichain Sepolia.
+- [x] `NightShiftReactive` v0: subscribe to `MockIssuer.Minted` on Ethereum Sepolia; on event compute tick (PriceMath), request `onAnchor` callback to the destination (Base Sepolia, ADR-015).
 - [x] Scripts 00–03 minimal; `deployments/testnet.json` written by scripts. (Done as 00–05 + Makefile targets; 00/01 fork-simulated OK. Local Gate 1 loop green: `test/integration/GateOneLoop.t.sol`, ADR-014.)
-- [ ] 🛑 ASK USER for `.env` with testnet keys/RPCs and to fund the deployer (SepETH, Base Sepolia ETH, Unichain Sepolia ETH); then run `make fund-reactive`.
-- [ ] Deploy; trigger `MockIssuer.mint` at a new price; observe reactive tx on Lasna and callback tx on Unichain Sepolia; `AnchorUpdated` emitted.
+- [ ] 🛑 ASK USER for `.env` with testnet keys/RPCs and to fund the deployer (SepETH ~0.05, Base Sepolia ETH ~0.25); then run `make fund-reactive` (Base Sepolia faucet).
+- [ ] Deploy; trigger `MockIssuer.mint` at a new price; observe reactive tx on Lasna and callback tx on Base Sepolia; `AnchorUpdated` emitted.
 - [ ] Record the four links in `docs/recordings/e2e.md`.
 - **Done when (Gate 1):** a reactive tx and its destination callback are visible in explorers. **If this fails by Sun 22 Nov:** stop feature work, debug only this loop, and 🛑 ASK USER whether to switch to the fallback idea (event-window liquidity for token unlocks: Reactive watches vesting-release events and triggers vault liquidity — it reuses the reactive contract, controller and vault code).
 

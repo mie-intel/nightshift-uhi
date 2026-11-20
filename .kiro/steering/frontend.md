@@ -12,7 +12,7 @@ Next.js (App Router) + wagmi + viem + TanStack Query + Tailwind + Recharts. Pin 
 - **Read all addresses from `deployments/{network}.json`** — never hard-code.
 - **No private keys in the frontend.** Read-only by default; wallet actions (deposit/withdraw/migrate) go through the user's wallet.
 - A judge must open the URL and see live state + recorded comparisons **without a wallet**.
-- Every callback shows explorer links: Reactscan (Lasna `https://lasna.reactscan.net` / mainnet `https://reactscan.net`) + destination explorer (Unichain Sepolia `https://sepolia.uniscan.xyz`, Robinhood Chain `https://robinhoodchain.blockscout.com`).
+- Every callback shows explorer links: Reactscan (Lasna `https://lasna.reactscan.net` / mainnet `https://reactscan.net`) + destination explorer (Base Sepolia `https://sepolia.basescan.org`, ADR-015).
 
 ## Pages
 1. **Live:** regime badge, countdown to next transition, anchor vs pool price chart, risk gauge, witness table (source, chain, last tick, weight, freshness), latest callbacks w/ explorer links.

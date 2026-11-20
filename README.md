@@ -192,7 +192,7 @@ flowchart LR
     NR["NightShiftReactive<br/>Witness Quorum · Risk · Regime · Reconcile"]
   end
 
-  subgraph Dest["Destination chain (Unichain Sepolia / Robinhood Chain)"]
+  subgraph Dest["Destination chain (Base Sepolia)"]
     CP["Callback Proxy"]
     CTRL["NightShiftController<br/>(callback receiver)"]
     HOOK["NightShiftHook<br/>(dynamic fees, move caps)"]
@@ -881,9 +881,11 @@ Testnet helpers: PoolSwapTest / PoolModifyLiquidityTest — Unichain Sepolia `0x
 
 | Role                                                                 | Chain            |
 | -------------------------------------------------------------------- | ---------------- |
-| Destination (main pool + hook + controller + vaults + control pools) | Unichain Sepolia |
+| Destination (main pool + hook + controller + vaults + control pools) | Base Sepolia     |
 | Origin: MockIssuer + sibling pool A                                  | Ethereum Sepolia |
-| Origin: sibling pool B                                               | Base Sepolia     |
+| Sibling pool B (plain v4 pool, separate market on the destination chain) | Base Sepolia |
+
+> ADR-015: destination moved from Unichain Sepolia to Base Sepolia (faucets, lREACT faucet on the same chain). Quorum still spans 2 chains (Ethereum Sepolia + Base Sepolia).
 | Reactive contract                                                    | Lasna            |
 
 **Mainnet showcase (stretch, demo tokens only):**
@@ -949,9 +951,9 @@ Non-secret parameters live in `contracts/config/{testnet,mainnet}.json` (pool pa
 | `make coverage`       | `forge coverage --report lcov`                                                                                           |
 | `make slither`        | `slither contracts/`                                                                                                     |
 | `make fmt`            | `forge fmt`                                                                                                              |
-| `make deploy-testnet` | scripts 00–05 in order across Sepolia, Base Sepolia, Unichain Sepolia, then `03_DeployReactive` on Lasna                 |
+| `make deploy-testnet` | scripts 00–04: origin (Sepolia) → destination (Base Sepolia) → reactive (Lasna) → controller → wiring                 |
 | `make fund-reactive`  | lREACT faucet + top-up reactive contract/callback contract                                                               |
-| `make e2e-testnet`    | flow bot triggers a witness move on Sepolia and waits for callback on Unichain Sepolia; prints Reactscan + Uniscan links |
+| `make e2e-testnet`    | triggers an issuer move on Sepolia → reactive tx on Lasna → callback on Base Sepolia (Reactscan + Basescan links) |
 | `make record`         | start recorder (all chains)                                                                                              |
 | `make report`         | produce CSV/JSON + charts for the dashboard                                                                              |
 | `make app`            | `pnpm --filter app dev`                                                                                                  |
@@ -1001,7 +1003,7 @@ Metrics per pool: swaps filled, reverts, LP PnL vs HODL (quote), fees earned, av
 
 ### 21.4 Testnet E2E acceptance (Gate 1)
 
-A `Minted` event on Ethereum Sepolia → reactive tx on Lasna → `onAnchor` callback tx on Unichain Sepolia → `AnchorUpdated` + `VaultRebalanced` events. All four links in `docs/recordings/e2e.md`.
+A `Minted` event on Ethereum Sepolia → reactive tx on Lasna → `onAnchor` callback tx on Base Sepolia → `AnchorUpdated` + `VaultRebalanced` events. All four links in `docs/recordings/e2e.md`.
 
 ---
 

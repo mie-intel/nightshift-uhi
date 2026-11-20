@@ -74,7 +74,7 @@ Supported Reactive **testnets**: Base Sepolia, Ethereum Sepolia, Unichain Sepoli
 
 ## Topology (README §18.5)
 
-**Testnet (primary build target):** Destination = Unichain Sepolia (pool+hook+controller+vaults+control pools). Origin = Ethereum Sepolia (MockIssuer + sibling pool A) + Base Sepolia (sibling pool B). Reactive = Lasna.
+**Testnet (primary build target, ADR-015):** Destination = **Base Sepolia** (pool+hook+controller+vaults+control pools; sibling pool B also here as a separate market). Origin = Ethereum Sepolia (MockIssuer + sibling pool A). Reactive = Lasna. lREACT via Base Sepolia faucet `0x2afa…5967`. Explorer: `https://sepolia.basescan.org`.
 **Mainnet showcase: OUT OF SCOPE** (ADR-011 — testnet-only; real Ondo is mainnet and can't be witnessed from Lasna). Issuer witness is always `MockIssuer` on Eth Sepolia.
 
 ## Commands (README §20)
@@ -83,7 +83,7 @@ Supported Reactive **testnets**: Base Sepolia, Ethereum Sepolia, Unichain Sepoli
 
 ## Env var names (README §19 — names only, no values)
 
-Keys: `DEPLOYER_PRIVATE_KEY`, `REACTIVE_PRIVATE_KEY`, `FLOWBOT_PRIVATE_KEY`. RPCs: `RPC_ETH_SEPOLIA`, `RPC_BASE_SEPOLIA`, `RPC_UNICHAIN_SEPOLIA`, `RPC_LASNA`, `RPC_ROBINHOOD`, `RPC_REACTIVE_MAINNET`, `RPC_ETHEREUM`, `RPC_BSC`. Explorers: `ETHERSCAN_API_KEY`, `BASESCAN_API_KEY`, `UNISCAN_API_KEY`. Reactive: `REACTIVE_SYSTEM`, `LREACT_FAUCET_SEPOLIA`, `CALLBACK_PROXY_UNICHAIN_SEPOLIA`, `CALLBACK_PROXY_ROBINHOOD`. Selector: `NETWORK` (testnet|mainnet).
+Keys: `DEPLOYER_PRIVATE_KEY`, `REACTIVE_PRIVATE_KEY`, `FLOWBOT_PRIVATE_KEY`. RPCs: `RPC_ETH_SEPOLIA`, `RPC_BASE_SEPOLIA`, `RPC_UNICHAIN_SEPOLIA`, `RPC_LASNA`, `RPC_ROBINHOOD`, `RPC_REACTIVE_MAINNET`, `RPC_ETHEREUM`, `RPC_BSC`. Explorers: `ETHERSCAN_API_KEY`, `BASESCAN_API_KEY`, `UNISCAN_API_KEY`. Reactive: `REACTIVE_SYSTEM`, `LREACT_FAUCET_SEPOLIA`, `LREACT_FAUCET_BASE_SEPOLIA`, `CALLBACK_PROXY_BASE_SEPOLIA`, `CALLBACK_PROXY_UNICHAIN_SEPOLIA`, `CALLBACK_PROXY_ROBINHOOD`. Selector: `NETWORK` (testnet|mainnet).
 
 ## Technical constraints
 

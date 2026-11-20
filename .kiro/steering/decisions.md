@@ -34,7 +34,7 @@ inclusion: manual
 ## ADR-005 Testnet topology
 - **Date:** 2026-11-18 · **Status:** Accepted
 - **Context:** Reactive supports Base Sepolia, Ethereum Sepolia, Unichain Sepolia, Lasna as testnets; Robinhood Chain & BSC are mainnet-only.
-- **Decision:** Destination = Unichain Sepolia; origins = Ethereum Sepolia (MockIssuer + sibling A) + Base Sepolia (sibling B); reactive = Lasna.
+- **Decision:** Destination = Unichain Sepolia; origins = Ethereum Sepolia (MockIssuer + sibling A) + Base Sepolia (sibling B); reactive = Lasna. **Superseded by ADR-015 (destination = Base Sepolia).**
 - **Consequences:** Primary build/demo target. Mainnet (Robinhood Chain) is a stretch showcase only.
 
 ## ADR-006 Destination calendar fallback + anchor staleness (defense in depth)
@@ -96,3 +96,9 @@ inclusion: manual
   5. Hook adds `initialized` to `PoolState` so callbacks for unknown pools revert (`UnknownPool`); `seq` is shared across `setState`/`setRegime` per pool (invariant 7).
   6. Chain addresses, demo prices and funding amounts live in `config/testnet.json` (`chains`, `demo`, `funding`); deploy outputs in `deployments/testnet.json`.
 - **Consequences:** Scripts 00–05 fork-simulated OK against Sepolia + Unichain Sepolia (hook mined, pool initialized, liquidity seeded). Lasna steps (02/04) untested until the real deploy; `LASNA_FLAGS` lets us add e.g. `--legacy` without code changes.
+
+## ADR-015 Destination chain = Base Sepolia (supersedes ADR-005 destination)
+- **Date:** 2026-11-20 · **Status:** Accepted (user decision)
+- **Context:** Unichain Sepolia ETH is hard to obtain; Base Sepolia ETH is easy, has 2 s blocks, a Reactive callback proxy (`0x476F…3585`), a v4 PoolManager (`0x05E7…3408`), the CREATE2 deployer, and an lREACT faucet (`0x2afa…5967`, 1 ETH → 100 lREACT) on the same chain. All four addresses verified on-chain (code present, chainId 84532).
+- **Decision:** Destination = Base Sepolia. Origin = Ethereum Sepolia (MockIssuer + sibling pool A). Sibling pool B = plain v4 pool on Base Sepolia (separate market; a different chain from the issuer, so quorum still spans 2 chains). Reactive = Lasna. Config uses a chain-agnostic `chains.destination` block; deployments use a `destination` section, so a future move is config-only.
+- **Consequences:** Wallet needs only Sepolia ETH (~0.05) + Base Sepolia ETH (~0.25). `make fund-reactive` uses the Base Sepolia faucet. Script 01 fork-simulated OK on Base Sepolia. The cross-chain story is intact: the issuer anchor lives on Ethereum Sepolia and is invisible to the Base Sepolia pool without Reactive.
