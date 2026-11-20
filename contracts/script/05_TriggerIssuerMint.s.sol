@@ -8,7 +8,7 @@ import {MockIssuer} from "../src/mocks/MockIssuer.sol";
 import {NightShiftConfig} from "./utils/NightShiftConfig.sol";
 import {Deployments} from "./utils/Deployments.sol";
 
-/// @title 05 — Origin (Ethereum Sepolia): move the issuer price by MOVE_BPS (default +200 = +2%) and mint 1 share.
+/// @title 05 — Origin (Ethereum Sepolia): set the issuer price (PRICE, or current price moved by MOVE_BPS) and mint 1 share.
 ///        The `Minted` event is what Reactive witnesses → onAnchor callback on the destination chain (Base Sepolia).
 /// @notice `MOVE_BPS=200 forge script script/05_TriggerIssuerMint.s.sol --rpc-url $RPC_ETH_SEPOLIA --broadcast`
 contract TriggerIssuerMint is Script {
@@ -17,9 +17,12 @@ contract TriggerIssuerMint is Script {
     function run() external {
         string memory cfg = NightShiftConfig.load("testnet");
         uint256 pk = vm.envUint("DEPLOYER_PRIVATE_KEY");
-        int256 moveBps = vm.envOr("MOVE_BPS", int256(200));
         MockIssuer issuer = MockIssuer(Deployments.addr("testnet", "ethSepolia", "mockIssuer"));
-        uint256 price = uint256(int256(cfg.readUint(".demo.issuerPrice")) * (10_000 + moveBps) / 10_000);
+        // PRICE (raw dUSD per share) wins; else move the CURRENT on-chain price by MOVE_BPS (default +200 = +2%)
+        uint256 price = vm.envOr("PRICE", uint256(0));
+        if (price == 0) {
+            price = uint256(int256(issuer.price()) * (10_000 + vm.envOr("MOVE_BPS", int256(200))) / 10_000);
+        }
         uint256 oneShare = 10 ** cfg.readUint(".demo.stockDecimals");
 
         vm.startBroadcast(pk);

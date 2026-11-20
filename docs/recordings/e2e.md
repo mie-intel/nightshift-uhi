@@ -19,3 +19,28 @@ NightShiftReactive [`0x5c34…1c3b`](https://lasna.reactscan.net/address/0x5c340
 NightShiftController [`0x7c5b…1e66`](https://sepolia.basescan.org/address/0x7c5bAdFE78395927C29F683ad4a292DCD1B51e66) ·
 NightShiftHook [`0x5786…d8C0`](https://sepolia.basescan.org/address/0x5786976C0527ECae71586b51226e86403343d8C0).
 All verified (Etherscan/Basescan; Sourcify for Lasna). Reproduce: `make e2e-testnet` (see `deployments/testnet.json`).
+
+---
+
+# v1 — Witness Quorum across two chains (20 Nov 2026, live)
+
+Reactive v1 (ADR-017) needs fresh witnesses on **≥ 2 chains** before it moves the pool. Witnesses: MockIssuer
+mints/redeems on **Ethereum Sepolia** (weight 5) + a sibling Uniswap v4 pool on **Base Sepolia** (weight 2) + our own
+pool's swaps (divergence only). Regime is driven by Cron1000 on Lasna.
+
+| # | Step | Chain | Tx | Block time |
+|---|---|---|---|---|
+| 1 | Sibling pool B traded to $103 (`Swap`, 2nd chain of the quorum) | Base Sepolia | [0x9c801a1d…350a](https://sepolia.basescan.org/tx/0x9c801a1dec4c652eb726cab77e33d9cec8330dbf2478f5bab0463e0e49f8350a) | — |
+| 1′ | First quorum → `onAnchor` seq 1 | Lasna → Base | [0xfca091a8…7322](https://lasna.reactscan.net/tx/0xfca091a85fd6b045259c2b3a7ef0682af68ee761c18964a14b18c57af5257322) → [0xab65f80e…d107](https://sepolia.basescan.org/tx/0xab65f80e78a263713da6629844e0a3e402eb2b1bbbcb15667f9cbb2bda92d107) | — |
+| 2 | Issuer mints at $103 (`Minted`) | Ethereum Sepolia | [0xa93d628f…57f3](https://sepolia.etherscan.io/tx/0xa93d628f73c75b3a07ab46507052f4cce3e6179d2b2f9f8edc4e4f48068457f3) | 1795192212 |
+| 3 | `react()` → quorum (2 chains) → `onAnchor` seq 2 | Lasna | [0x1231e598…b27e](https://lasna.reactscan.net/tx/0x1231e598a7dff6fa8b7725abc4eed0beb22e2f164266589b82ba85d4e082b27e) | 1795192212 |
+| 4 | `NightShiftController.onAnchor` → `hook.setState` | Base Sepolia | [0x763ae01f…3061](https://sepolia.basescan.org/tx/0x763ae01fc0ea9743be481ddfba7e8e5c6d6fb10b0e0075dba58239c6126d3061) | 1795192214 |
+
+Hook state after (seq 2): anchor $99.65 (EWMA still blending an earlier $99 issuer print toward $103), risk 11.25%
+(OPEN: witness dispersion 90 ticks), regime OPEN. Issuer mint → pool update: **~2 s**.
+
+v1 contracts (all verified): hook [`0x94D0…58c0`](https://sepolia.basescan.org/address/0x94D0aC748093AFe25A4811806c5232bdb93E58c0) ·
+controller [`0x376B…EaeC`](https://sepolia.basescan.org/address/0x376B0580116EB96026397eb37e81767d92F0EaeC) ·
+reactive [`0x0809…bB60`](https://lasna.reactscan.net/address/0x0809e4e6016eF2c587B1571DA6D193993F31bB60) ·
+faucet [`0x2954…bF9d`](https://sepolia.basescan.org/address/0x29544B43bD7a87A950E131F4ad726A8Cf2c6bF9d).
+Reproduce: `make news PRICE=104000000`.

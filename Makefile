@@ -9,7 +9,8 @@ SHELL := /bin/bash
 
 # Load .env (never committed) into recipe shells. Override per-chain forge flags if a chain needs e.g. --legacy.
 ENV := set -a; [ -f .env ] && . ./.env; set +a;
-LASNA_FLAGS ?=
+# Lasna RPC caps a tx fee at 1 lREACT; forge's default max fee (2x base) can exceed it on big deploys → pin 100 gwei.
+LASNA_FLAGS ?= --with-gas-price 100gwei --priority-gas-price 1gwei
 # Sepolia's current gas schedule prices CREATE far above forge's local simulation (~6.6x: node 4.69M vs local 0.71M for a token),
 # so origin txs need a larger estimate multiplier. Gas price there is ~0, so this costs nothing extra.
 ORIGIN_FLAGS ?= --gas-estimate-multiplier 1000 --slow
@@ -70,9 +71,9 @@ wire-reactive: ## 04: reactive.setController + subscribe (Lasna)
 deploy-faucet: ## 06: public demo-token faucet on Base Sepolia (for dashboard swaps)
 	$(ENV) cd $(C) && forge script script/06_DeployFaucet.s.sol --rpc-url $$RPC_BASE_SEPOLIA --broadcast
 
-news: ## demo "weekend news": issuer price → PRICE (raw dUSD/share, e.g. 104000000) on Sepolia + sibling pool on Base
-	$(ENV) cd $(C) && MOVE_BPS=$$(( ($${PRICE:?set PRICE e.g. 104000000} * 10000 / $$(cast call $$(jq -r .ethSepolia.mockIssuer ../deployments/testnet.json) 'price()(uint256)' --rpc-url $$RPC_ETH_SEPOLIA | cut -d' ' -f1)) - 10000 )) forge script script/05_TriggerIssuerMint.s.sol --rpc-url $$RPC_ETH_SEPOLIA --broadcast $(ORIGIN_FLAGS)
-	$(ENV) cd $(C) && forge script script/07_MoveSibling.s.sol --rpc-url $$RPC_BASE_SEPOLIA --broadcast
+news: ## demo "weekend news": issuer → PRICE (raw dUSD/share, e.g. 104000000) on Sepolia + sibling pool on Base
+	$(ENV) cd $(C) && PRICE=$${PRICE:?set PRICE e.g. 104000000} forge script script/05_TriggerIssuerMint.s.sol --rpc-url $$RPC_ETH_SEPOLIA --broadcast $(ORIGIN_FLAGS)
+	$(ENV) cd $(C) && PRICE=$$PRICE forge script script/07_MoveSibling.s.sol --rpc-url $$RPC_BASE_SEPOLIA --broadcast
 
 fund-reactive: ## get lREACT on Lasna: send LREACT_ETH (default 0.05ether) Base Sepolia ETH to the faucet (1 ETH = 100 lREACT)
 	$(ENV) cast send $$LREACT_FAUCET_BASE_SEPOLIA --value $${LREACT_ETH:-0.05ether} --rpc-url $$RPC_BASE_SEPOLIA --private-key $$REACTIVE_PRIVATE_KEY

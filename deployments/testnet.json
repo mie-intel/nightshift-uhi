@@ -8,22 +8,24 @@
   },
   "destination": {
     "chainId": 84532,
-    "controller": "0x7c5bAdFE78395927C29F683ad4a292DCD1B51e66",
-    "dStock": "0x5c34094CCc335B38092924C07cAC0D00D36a1c3b",
-    "dUsd": "0x29F4cE0cBc1Cc2fE47953dCB262c46e1BC45C0Fb",
-    "hook": "0x5786976C0527ECae71586b51226e86403343d8C0",
-    "initTick": 230271,
-    "invert": true,
-    "liquidityRouter": "0x18C7b5c9C3e82a1bC5D83027E92465938Ff47cE2",
-    "poolId": "0x40a1bf5ad017a6c437c8175c355ffac3387d0fc655ab06c6b8eb38695cdbee23",
+    "controller": "0x376B0580116EB96026397eb37e81767d92F0EaeC",
+    "dStock": "0x8b1ae52974991513E878D953F6BEf634ae19E87A",
+    "dUsd": "0xe36D676D06B9fFf615A82beCD4e9B76980E555D9",
+    "deployBlock": 61350093,
+    "faucet": "0x29544B43bD7a87A950E131F4ad726A8Cf2c6bF9d",
+    "hook": "0x94D0aC748093AFe25A4811806c5232bdb93E58c0",
+    "initTick": -230271,
+    "invert": false,
+    "liquidityRouter": "0x0baEbB7E87F6Cd834eEe84fBCAC4af7a5A46432e",
+    "poolId": "0x9ce70db7540fe0825b1e4a6db5f3630e2a357e764f231a176f0cd148a47cf6f2",
     "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
-    "swapRouter": "0x0809e4e6016eF2c587B1571DA6D193993F31bB60",
-    "faucet": "0x591cd3a2934aB7C5A8D8C8e1D87d057cAA46ea30",
-    "deployBlock": 61327600
+    "siblingFee": 3000,
+    "siblingPoolId": "0x9054a45189997f4f52f0ba8e62d8997c6e8d629fcb5436cd58c5a301f0274617",
+    "swapRouter": "0x4281c271578403E2b27D3B674323733fd68C22a9"
   },
   "lasna": {
     "chainId": 5318007,
-    "reactive": "0x5c34094CCc335B38092924C07cAC0D00D36a1c3b",
-    "deployBlock": 8820350
+    "deployBlock": 8824632,
+    "reactive": "0x0809e4e6016eF2c587B1571DA6D193993F31bB60"
   }
 }
