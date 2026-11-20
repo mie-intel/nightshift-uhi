@@ -1,5 +1,5 @@
 {
-  "_note": "Initial defaults to tune (README §7-§11). All ticks in destination tick space; fees in pips (1e6=100%); bps 0-10000; times in seconds. Hard caps MAX_FEE=100000, MAX_PERF_FEE=2000, MAX_SOURCES=16, MAX_VAULTS_PER_POOL=8 are compile-time constants, not here.",
+  "_note": "Initial defaults to tune (README \u00a77-\u00a711). All ticks in destination tick space; fees in pips (1e6=100%); bps 0-10000; times in seconds. Hard caps MAX_FEE=100000, MAX_PERF_FEE=2000, MAX_SOURCES=16, MAX_VAULTS_PER_POOL=8 are compile-time constants, not here.",
   "network": "testnet",
   "pool": {
     "tickSpacing": 60,
@@ -68,22 +68,122 @@
   "mandateTimelock": 86400,
   "mandatePresets": {
     "conservative": {
-      "open":   {"followBps": 5000,  "coreHalfWidth": 600, "wideHalfWidth": 3000, "coreShareBps": 5000, "riskWidenBps": 10000, "recenterThreshold": 60, "exitRiskBps": 6000},
-      "closed": {"followBps": 10000, "coreHalfWidth": 800, "wideHalfWidth": 4000, "coreShareBps": 4000, "riskWidenBps": 15000, "recenterThreshold": 50, "exitRiskBps": 5000},
-      "reopen": {"followBps": 10000, "coreHalfWidth": 700, "wideHalfWidth": 3500, "coreShareBps": 4000, "riskWidenBps": 12000, "recenterThreshold": 60, "exitRiskBps": 5500},
+      "open": {
+        "followBps": 5000,
+        "coreHalfWidth": 600,
+        "wideHalfWidth": 3000,
+        "coreShareBps": 5000,
+        "riskWidenBps": 10000,
+        "recenterThreshold": 60,
+        "exitRiskBps": 6000
+      },
+      "closed": {
+        "followBps": 10000,
+        "coreHalfWidth": 800,
+        "wideHalfWidth": 4000,
+        "coreShareBps": 4000,
+        "riskWidenBps": 15000,
+        "recenterThreshold": 50,
+        "exitRiskBps": 5000
+      },
+      "reopen": {
+        "followBps": 10000,
+        "coreHalfWidth": 700,
+        "wideHalfWidth": 3500,
+        "coreShareBps": 4000,
+        "riskWidenBps": 12000,
+        "recenterThreshold": 60,
+        "exitRiskBps": 5500
+      },
       "perfFeeBps": 1000
     },
     "balanced": {
-      "open":   {"followBps": 7000,  "coreHalfWidth": 400, "wideHalfWidth": 2000, "coreShareBps": 6000, "riskWidenBps": 8000,  "recenterThreshold": 40, "exitRiskBps": 7500},
-      "closed": {"followBps": 10000, "coreHalfWidth": 500, "wideHalfWidth": 2500, "coreShareBps": 5000, "riskWidenBps": 12000, "recenterThreshold": 40, "exitRiskBps": 7000},
-      "reopen": {"followBps": 10000, "coreHalfWidth": 450, "wideHalfWidth": 2200, "coreShareBps": 5000, "riskWidenBps": 10000, "recenterThreshold": 40, "exitRiskBps": 7000},
+      "open": {
+        "followBps": 7000,
+        "coreHalfWidth": 400,
+        "wideHalfWidth": 2000,
+        "coreShareBps": 6000,
+        "riskWidenBps": 8000,
+        "recenterThreshold": 40,
+        "exitRiskBps": 7500
+      },
+      "closed": {
+        "followBps": 10000,
+        "coreHalfWidth": 500,
+        "wideHalfWidth": 2500,
+        "coreShareBps": 5000,
+        "riskWidenBps": 12000,
+        "recenterThreshold": 40,
+        "exitRiskBps": 7000
+      },
+      "reopen": {
+        "followBps": 10000,
+        "coreHalfWidth": 450,
+        "wideHalfWidth": 2200,
+        "coreShareBps": 5000,
+        "riskWidenBps": 10000,
+        "recenterThreshold": 40,
+        "exitRiskBps": 7000
+      },
       "perfFeeBps": 1500
     },
     "aggressive": {
-      "open":   {"followBps": 10000, "coreHalfWidth": 200, "wideHalfWidth": 1200, "coreShareBps": 8000, "riskWidenBps": 6000, "recenterThreshold": 20, "exitRiskBps": 9000},
-      "closed": {"followBps": 10000, "coreHalfWidth": 250, "wideHalfWidth": 1500, "coreShareBps": 7000, "riskWidenBps": 9000, "recenterThreshold": 20, "exitRiskBps": 9000},
-      "reopen": {"followBps": 10000, "coreHalfWidth": 220, "wideHalfWidth": 1300, "coreShareBps": 7000, "riskWidenBps": 8000, "recenterThreshold": 20, "exitRiskBps": 9000},
+      "open": {
+        "followBps": 10000,
+        "coreHalfWidth": 200,
+        "wideHalfWidth": 1200,
+        "coreShareBps": 8000,
+        "riskWidenBps": 6000,
+        "recenterThreshold": 20,
+        "exitRiskBps": 9000
+      },
+      "closed": {
+        "followBps": 10000,
+        "coreHalfWidth": 250,
+        "wideHalfWidth": 1500,
+        "coreShareBps": 7000,
+        "riskWidenBps": 9000,
+        "recenterThreshold": 20,
+        "exitRiskBps": 9000
+      },
+      "reopen": {
+        "followBps": 10000,
+        "coreHalfWidth": 220,
+        "wideHalfWidth": 1300,
+        "coreShareBps": 7000,
+        "riskWidenBps": 8000,
+        "recenterThreshold": 20,
+        "exitRiskBps": 9000
+      },
       "perfFeeBps": 2000
     }
+  },
+  "chains": {
+    "ethSepolia": {
+      "chainId": 11155111
+    },
+    "unichainSepolia": {
+      "chainId": 1301,
+      "poolManager": "0x00b036b58a818b1bc34d502d3fe730db729e62ac",
+      "callbackProxy": "0x775c9B990ADe401060B78D0e98684eEf8d2466C1"
+    },
+    "lasna": {
+      "chainId": 5318007
+    }
+  },
+  "demo": {
+    "_note": "Demo tokens only (README \u00a74.4). issuerPrice = raw dUSD per 1e18 raw dSTOCK (100e6 = 100 dUSD). Same decimals on every chain -> offsetTicks 0.",
+    "stockDecimals": 18,
+    "usdDecimals": 6,
+    "issuerPrice": 100000000,
+    "liquidityHalfWidthTicks": 6000,
+    "liquidityDelta": 1000000000000000,
+    "deployerUsdMint": 1000000000000,
+    "deployerStockMint": 1000000000000000000000
+  },
+  "funding": {
+    "_note": "wei of native token: lREACT on Lasna, ETH on Unichain Sepolia",
+    "reactiveWei": 2000000000000000000,
+    "controllerWei": 10000000000000000
   }
 }

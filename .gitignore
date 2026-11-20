@@ -2,10 +2,10 @@
 contracts/out/
 contracts/out-reactive/
 contracts/cache/
-contracts/broadcast/*/dry-run/
+contracts/broadcast/**/dry-run/
 out/
 cache/
-broadcast/*/dry-run/
+broadcast/**/dry-run/
 
 # Node
 node_modules/
