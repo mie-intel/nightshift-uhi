@@ -16,6 +16,11 @@ import {MockIssuer} from "../../src/mocks/MockIssuer.sol";
 import {FeeMath} from "../../src/libraries/FeeMath.sol";
 import {PriceMath} from "../../src/libraries/PriceMath.sol";
 import {Regime} from "../../src/libraries/Types.sol";
+import {NightShiftVault} from "../../src/vault/NightShiftVault.sol";
+import {VaultFactory} from "../../src/vault/VaultFactory.sol";
+import {NightShiftConfig} from "../../script/utils/NightShiftConfig.sol";
+import {Currency} from "@uniswap/v4-core/src/types/Currency.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @title A full NightShift weekend, locally, with every real contract (README §21.2 integration test).
 /// @notice Fri close → Saturday news on two other chains → the pool is repriced with no trade on it → repair served,
@@ -25,6 +30,9 @@ contract WeekendLoopTest is HookFixture, ReactiveFixture {
     address trader = makeAddr("trader");
     MockIssuer mi;
     NightShiftController ctrl;
+    VaultFactory factory;
+    NightShiftVault vault;
+    address curator = makeAddr("curator");
     bytes32 constant SWAP_TOPIC = keccak256("Swap(bytes32,address,int128,int128,uint160,uint128,int24,uint24)");
 
     function setUp() public {
@@ -48,6 +56,15 @@ contract WeekendLoopTest is HookFixture, ReactiveFixture {
         vm.prank(hookOwner);
         hook.initController(address(ctrl));
         rx.setController(address(ctrl));
+
+        // a curator opens a Balanced vault; depositors follow it
+        factory = new VaultFactory(manager, key, address(ctrl));
+        ctrl.setFactory(address(factory));
+        vm.prank(curator);
+        vault = NightShiftVault(factory.create(NightShiftConfig.mandate(json, "balanced"), "Balanced Night", "bNIGHT"));
+        IERC20(Currency.unwrap(currency0)).approve(address(vault), type(uint256).max);
+        IERC20(Currency.unwrap(currency1)).approve(address(vault), type(uint256).max);
+        vault.deposit(1000e18, 1000e18, 0, address(this));
     }
 
     // ---------------------------------------------------------------- the three chains
@@ -103,11 +120,13 @@ contract WeekendLoopTest is HookFixture, ReactiveFixture {
         _siblingTrades(0);
         assertEq(_deliver(), 1, "first anchor");
         assertEq(_hookAnchor(), 0);
+        assertGt(vault.liquidity(), 0, "vault deployed on the fair price by the first callback");
 
         // Friday 21:00 — NYSE closes; Cron flips the regime on Reactive → pool CLOSED
         _cron(_utc(2026, 11, 20, 21, 0));
         _deliver();
         assertEq(uint8(hook.regimeOf(poolId)), uint8(Regime.CLOSED), "pool closed by Reactive");
+        assertTrue(vault.snapshotOpen(), "vault snapshot at the close");
         console.log("Fri 21:00 UTC  NYSE closed -> pool CLOSED via onRegime");
 
         // Saturday 12:00 — news: the issuer and a sibling pool both reprice +4% on other chains
@@ -131,6 +150,9 @@ contract WeekendLoopTest is HookFixture, ReactiveFixture {
             _absDiff(fair, rx.anchor()), qp.minAnchorDeltaTicks, "hook within debounce threshold (no callback spam)"
         );
         assertEq(_poolTick(), 0, "no trade on our pool yet - repriced between trades");
+        int24 vaultCenter = (vault.lower() + vault.upper()) / 2;
+        assertApproxEqAbs(int256(vaultCenter), int256(fair), 70, "vault recentered on fair value with no trade");
+        console.log("vault liquidity recentered around tick", int256(vaultCenter));
         console.log("Sat 12:00 UTC  issuer +4% on Sepolia + sibling on Base -> pool anchor tick", int256(fair));
 
         // repair flow is served all the way to fair value…
@@ -157,7 +179,28 @@ contract WeekendLoopTest is HookFixture, ReactiveFixture {
         _deliver();
         assertEq(uint8(hook.regimeOf(poolId)), uint8(Regime.OPEN), "reconciled at the open");
         assertEq(rx.epochId(), 1);
+        assertEq(vault.epochsPlayed(), 1, "vault scored vs HODL at the open");
+        console.log("vault alpha vs HODL (currency1 wad/share)", vault.lastAlpha());
         console.log("Mon 14:45 UTC  open window closed -> onReconcile -> pool OPEN");
+    }
+
+    /// @dev The onAnchor callback (hook + vault fan-out) must fit its configured gas limit.
+    function test_onAnchorCallback_gas_withVault() public {
+        vm.warp(_utc(2026, 11, 20, 20, 30));
+        _issuerTrades(1e18);
+        _siblingTrades(0);
+        bytes memory payload = sys.queuedAt(0).config.payload;
+        address r = address(rx);
+        assembly ("memory-safe") {
+            mstore(add(payload, 36), r)
+        }
+        vm.prank(callbackProxy);
+        uint256 g = gasleft();
+        (bool ok,) = address(ctrl).call(payload);
+        uint256 used = g - gasleft();
+        assertTrue(ok);
+        emit log_named_uint("onAnchor gas (1 vault)", used);
+        assertLt(used * 8, gl.onAnchor * 3, "room for ~8 vaults within the callback gas limit"); // ~used < 940k
     }
 
     /// @dev S5: witnesses go silent while closed → anchor goes stale on the hook → every trade is max-protected.

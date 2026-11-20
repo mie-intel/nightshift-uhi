@@ -17,6 +17,9 @@ interface INightShiftHook {
     /// @notice Set the regime without a seq (Controller fallbacks only: calendar sync, reconcile timeout).
     function forceRegime(PoolId id, Regime regime) external;
 
+    /// @notice Last anchor tick pushed for a pool.
+    function anchorOf(PoolId id) external view returns (int24);
+
     /// @notice Current regime of a pool.
     function regimeOf(PoolId id) external view returns (Regime);
 

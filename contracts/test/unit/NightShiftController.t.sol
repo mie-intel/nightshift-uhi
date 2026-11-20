@@ -37,6 +37,10 @@ contract RecordingHook is INightShiftHook {
         forced++;
     }
 
+    function anchorOf(PoolId) external pure returns (int24) {
+        return 77;
+    }
+
     function regimeOf(PoolId id) external view returns (Regime) {
         return regimes[PoolId.unwrap(id)];
     }

@@ -7,13 +7,15 @@ import {PoolId} from "@uniswap/v4-core/src/types/PoolId.sol";
 
 import {INightShiftController} from "../interfaces/INightShiftController.sol";
 import {INightShiftHook} from "../interfaces/INightShiftHook.sol";
+import {INightShiftVault} from "../interfaces/INightShiftVault.sol";
 import {NyseCalendar} from "../libraries/NyseCalendar.sol";
 import {Regime} from "../libraries/Types.sol";
 
 /// @title NightShiftController
 /// @notice Destination-chain receiver of Reactive callbacks (README §13.1). Authenticates every callback with BOTH
 ///         `onlyServiceProvider` (msg.sender == callback proxy) and `onlyCallbackSender` (injected first arg ==
-///         our reactive contract) — ADR-008 — then fans out to the hook. Also holds the permissionless safety
+///         our reactive contract) — ADR-008 — then fans out to the hook and the registered curator vaults
+///         (try/catch per vault: one failing vault never blocks a callback). Also the vault registry (ADR-018). Also holds the permissionless safety
 ///         fallbacks `syncRegime` (calendar) and `forceReconcile` (Reactive outage at the open).
 /// @dev pragma ^0.8.29 because reactive-lib-omni's AbstractCallback requires it.
 contract NightShiftController is AbstractCallback, INightShiftController {
@@ -23,11 +25,24 @@ contract NightShiftController is AbstractCallback, INightShiftController {
     uint256 public immutable reconcileTimeout;
     /// @notice When each pool entered REOPEN_PENDING (0 = not pending).
     mapping(bytes32 => uint256) public reopenPendingAt;
+    /// @notice Max curator vaults per pool (bounded callback loops).
+    uint256 public constant MAX_VAULTS_PER_POOL = 8;
+    /// @notice Deployer; may set the vault factory once.
+    address public immutable admin;
+    /// @notice VaultFactory allowed to register vaults.
+    address public factory;
+    /// @notice Closed-period counter per pool (++ on each close).
+    mapping(bytes32 => uint64) public epochOf;
+    mapping(bytes32 => address[]) internal _vaults;
 
     /// @notice Calendar and pool regime already agree.
     error NothingToSync();
     /// @notice Pool is not waiting for reconciliation, or the timeout has not passed.
     error ReconcileNotDue();
+    /// @notice Caller may not register vaults / set the factory.
+    error NotRegistrar();
+    /// @notice Vault cap per pool reached.
+    error TooManyVaults();
 
     /// @notice An anchor callback was applied to the hook.
     event AnchorRelayed(
@@ -47,6 +62,14 @@ contract NightShiftController is AbstractCallback, INightShiftController {
     event RegimeSynced(bytes32 indexed poolId, uint8 regime, address caller);
     /// @notice Permissionless reconcile-timeout fallback reopened the pool.
     event ForcedReconcile(bytes32 indexed poolId, address caller);
+    /// @notice Factory set (once).
+    event FactorySet(address factory);
+    /// @notice Curator vault registered for a pool.
+    event VaultAdded(bytes32 indexed poolId, address vault);
+    /// @notice A vault call reverted (op: 0 rebalance, 1 snapshot, 2 reconcile) — the callback still succeeds.
+    event VaultCallFailed(bytes32 indexed poolId, address indexed vault, uint8 op);
+    /// @notice A new closed epoch started.
+    event EpochStarted(bytes32 indexed poolId, uint64 epochId);
 
     /// @param callbackProxy_ Reactive callback proxy on this chain (README §18.2)
     /// @param reactive_ NightShiftReactive address on Reactive Network (callback sender identity)
@@ -58,6 +81,29 @@ contract NightShiftController is AbstractCallback, INightShiftController {
     {
         hook = hook_;
         reconcileTimeout = reconcileTimeout_;
+        admin = msg.sender;
+    }
+
+    // ---------------------------------------------------------------- vault registry
+
+    /// @notice Set the VaultFactory (once, admin).
+    function setFactory(address factory_) external {
+        if (msg.sender != admin || factory != address(0)) revert NotRegistrar();
+        factory = factory_;
+        emit FactorySet(factory_);
+    }
+
+    /// @notice Register a curator vault for a pool (factory or admin).
+    function addVault(bytes32 poolId, address vault) external {
+        if (msg.sender != factory && msg.sender != admin) revert NotRegistrar();
+        if (_vaults[poolId].length >= MAX_VAULTS_PER_POOL) revert TooManyVaults();
+        _vaults[poolId].push(vault);
+        emit VaultAdded(poolId, vault);
+    }
+
+    /// @notice Vaults registered for a pool.
+    function vaultsOf(bytes32 poolId) external view returns (address[] memory) {
+        return _vaults[poolId];
     }
 
     /// @inheritdoc INightShiftController
@@ -73,6 +119,15 @@ contract NightShiftController is AbstractCallback, INightShiftController {
     ) external onlyServiceProvider onlyCallbackSender(reactive) {
         hook.setState(PoolId.wrap(poolId), anchorTick, riskBps, dispersionTicks, seq);
         emit AnchorRelayed(poolId, seq, anchorTick, riskBps, dispersionTicks, sources, observedAt);
+        // vaults recenter on the witnessed fair price — with no trade on the pool
+        Regime r = hook.regimeOf(PoolId.wrap(poolId));
+        address[] storage vs = _vaults[poolId];
+        for (uint256 i; i < vs.length; ++i) {
+            try INightShiftVault(vs[i]).rebalance(anchorTick, riskBps, r) {}
+            catch {
+                emit VaultCallFailed(poolId, vs[i], 0);
+            }
+        }
     }
 
     /// @inheritdoc INightShiftController
@@ -84,6 +139,7 @@ contract NightShiftController is AbstractCallback, INightShiftController {
         hook.setRegime(PoolId.wrap(poolId), Regime(regime), seq);
         _trackReopen(poolId, Regime(regime));
         emit RegimeRelayed(poolId, seq, regime, effectiveAt);
+        if (Regime(regime) == Regime.CLOSED) _startEpoch(poolId);
     }
 
     /// @inheritdoc INightShiftController
@@ -98,6 +154,7 @@ contract NightShiftController is AbstractCallback, INightShiftController {
     ) external onlyServiceProvider onlyCallbackSender(reactive) {
         hook.setRegime(PoolId.wrap(poolId), Regime.OPEN, seq);
         delete reopenPendingAt[poolId];
+        _reconcileVaults(poolId, openTick, degraded);
         emit Reconciled(poolId, epochId, openTick, openAt, degraded);
     }
 
@@ -114,6 +171,7 @@ contract NightShiftController is AbstractCallback, INightShiftController {
         hook.forceRegime(id, next);
         _trackReopen(poolId, next);
         emit RegimeSynced(poolId, uint8(next), msg.sender);
+        if (next == Regime.CLOSED) _startEpoch(poolId);
     }
 
     /// @notice Permissionless: reopen the pool if reconciliation hasn't arrived within `reconcileTimeout`.
@@ -123,12 +181,36 @@ contract NightShiftController is AbstractCallback, INightShiftController {
         if (hook.regimeOf(PoolId.wrap(poolId)) != Regime.REOPEN_PENDING) revert ReconcileNotDue();
         delete reopenPendingAt[poolId];
         hook.forceRegime(PoolId.wrap(poolId), Regime.OPEN);
+        _reconcileVaults(poolId, hook.anchorOf(PoolId.wrap(poolId)), true); // degraded: last anchor
         emit ForcedReconcile(poolId, msg.sender);
     }
 
     /// @notice Repay any outstanding callback debt to the proxy from this contract's balance (debt blocks callbacks).
     function coverDebt() external {
         _coverDebt();
+    }
+
+    function _startEpoch(bytes32 poolId) internal {
+        uint64 e = ++epochOf[poolId];
+        emit EpochStarted(poolId, e);
+        address[] storage vs = _vaults[poolId];
+        for (uint256 i; i < vs.length; ++i) {
+            try INightShiftVault(vs[i]).snapshotClose(e) {}
+            catch {
+                emit VaultCallFailed(poolId, vs[i], 1);
+            }
+        }
+    }
+
+    function _reconcileVaults(bytes32 poolId, int24 openTick, bool degraded) internal {
+        uint64 e = epochOf[poolId];
+        address[] storage vs = _vaults[poolId];
+        for (uint256 i; i < vs.length; ++i) {
+            try INightShiftVault(vs[i]).reconcile(e, openTick, degraded) {}
+            catch {
+                emit VaultCallFailed(poolId, vs[i], 2);
+            }
+        }
     }
 
     function _trackReopen(bytes32 poolId, Regime r) internal {

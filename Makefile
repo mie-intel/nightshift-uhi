@@ -33,7 +33,8 @@ build-reactive: ## forge build (reactive profile, solc 0.8.29)
 test: ## forge test -vvv
 	cd $(C) && forge test -vvv
 
-test-scenarios: ## scenario replays → docs/recordings/scenarios.csv (Phase 10)
+test-scenarios: ## scenario replays (static vs NightShift) → docs/recordings/scenarios.csv
+	@mkdir -p docs/recordings && echo "scenario,pool,swaps_filled,swaps_blocked,lp_pnl_vs_hodl_bps,avg_fee_bps,gap_at_reopen_ticks,max_premium_ticks" > docs/recordings/scenarios.csv
 	cd $(C) && forge test --match-path "test/scenarios/*" -vv
 
 coverage: ## forge coverage (lcov)

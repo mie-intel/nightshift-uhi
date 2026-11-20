@@ -3,7 +3,7 @@ pragma solidity ^0.8.26;
 
 import {Vm} from "forge-std/Vm.sol";
 import {stdJson} from "forge-std/StdJson.sol";
-import {PoolConfig, RiskParams, QuorumParams, GasLimits} from "../../src/libraries/Types.sol";
+import {PoolConfig, RiskParams, QuorumParams, GasLimits, Mandate, RegimeMandate} from "../../src/libraries/Types.sol";
 
 /// @title NightShiftConfig
 /// @notice Reads tunable parameters from `contracts/config/{network}.json` (rule: params never hard-coded).
@@ -73,6 +73,25 @@ library NightShiftConfig {
     /// @notice Cron topic0 for the reactive subscription.
     function cronTopic(string memory json) internal pure returns (uint256) {
         return uint256(json.readBytes32(".cron.topic0"));
+    }
+
+    /// @notice Mandate preset `name` (conservative | balanced | aggressive) from `mandatePresets`.
+    function mandate(string memory json, string memory name) internal pure returns (Mandate memory m) {
+        string memory base = string.concat(".mandatePresets.", name);
+        m.open = _regimeMandate(json, string.concat(base, ".open"));
+        m.closed = _regimeMandate(json, string.concat(base, ".closed"));
+        m.reopen = _regimeMandate(json, string.concat(base, ".reopen"));
+        m.perfFeeBps = uint16(json.readUint(string.concat(base, ".perfFeeBps")));
+    }
+
+    function _regimeMandate(string memory json, string memory p) private pure returns (RegimeMandate memory r) {
+        r.followBps = uint16(json.readUint(string.concat(p, ".followBps")));
+        r.coreHalfWidth = uint24(json.readUint(string.concat(p, ".coreHalfWidth")));
+        r.wideHalfWidth = uint24(json.readUint(string.concat(p, ".wideHalfWidth")));
+        r.coreShareBps = uint16(json.readUint(string.concat(p, ".coreShareBps")));
+        r.riskWidenBps = uint16(json.readUint(string.concat(p, ".riskWidenBps")));
+        r.recenterThreshold = uint24(json.readUint(string.concat(p, ".recenterThreshold")));
+        r.exitRiskBps = uint16(json.readUint(string.concat(p, ".exitRiskBps")));
     }
 
     /// @notice Pool tick spacing.

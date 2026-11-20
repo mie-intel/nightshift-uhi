@@ -152,6 +152,11 @@ contract NightShiftHook is BaseOverrideFee, INightShiftHook {
     }
 
     /// @inheritdoc INightShiftHook
+    function anchorOf(PoolId id) external view returns (int24) {
+        return poolState[id].anchorTick;
+    }
+
+    /// @inheritdoc INightShiftHook
     function regimeOf(PoolId id) external view returns (Regime) {
         return poolState[id].regime;
     }
