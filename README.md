@@ -121,6 +121,20 @@ Sibling v4 Swap ───┘        risk ratchet · Cron1000 regime ────
 
 ## Deployed (testnet)
 
+| Contract | Chain | Address |
+|---|---|---|
+| NightShiftHook (v4 hook) | Base Sepolia | [`0xc7eF4D7cE20D9F106800ad65ac424EA1709598c0`](https://sepolia.basescan.org/address/0xc7eF4D7cE20D9F106800ad65ac424EA1709598c0) |
+| NightShiftController (callback receiver + vault registry) | Base Sepolia | [`0x76caeD2d2Aa4A163D966c5A6C238B955Bb5C6ee3`](https://sepolia.basescan.org/address/0x76caeD2d2Aa4A163D966c5A6C238B955Bb5C6ee3) |
+| VaultFactory | Base Sepolia | [`0x169Bec0CBBEf118496A57cd0D50AfceC1B2EE7c7`](https://sepolia.basescan.org/address/0x169Bec0CBBEf118496A57cd0D50AfceC1B2EE7c7) |
+| Vault · Steady Night (conservative) | Base Sepolia | [`0x3a13230DF8ED553b48a0917385BcE5d10B1b4943`](https://sepolia.basescan.org/address/0x3a13230DF8ED553b48a0917385BcE5d10B1b4943) |
+| Vault · Balanced Night | Base Sepolia | [`0x1Dc82FADaBF8099589034de736611bF3f9BEE80A`](https://sepolia.basescan.org/address/0x1Dc82FADaBF8099589034de736611bF3f9BEE80A) |
+| Vault · Night Owl (aggressive) | Base Sepolia | [`0x85d9551c08ca63C22D33e9a64908054DFFD69C36`](https://sepolia.basescan.org/address/0x85d9551c08ca63C22D33e9a64908054DFFD69C36) |
+| DemoFaucet | Base Sepolia | [`0xe1AeC464Cd81e0C536ce44e76f2b72488f63517A`](https://sepolia.basescan.org/address/0xe1AeC464Cd81e0C536ce44e76f2b72488f63517A) |
+| NightShiftReactive | Reactive Lasna | [`0x31D25888752Ad6f4192469F88657572e93690757`](https://lasna.reactscan.net/address/0x31D25888752Ad6f4192469F88657572e93690757) |
+| MockIssuer (issuer witness) | Ethereum Sepolia | [`0x83Ec94D9fc79a41DF16652d4F359930D1dF22B58`](https://sepolia.etherscan.io/address/0x83Ec94D9fc79a41DF16652d4F359930D1dF22B58) |
+
+Pool id: `0x97412ae5ed6642c278a223a77017b0cf5e2e60facc3ef230716aa785276f5529` · sibling pool id: `0x2c14278f267ef1584c04caec5d367ae0e37f80ece34ca34a8306492d2ea79b2c`.
+
 All addresses: [`deployments/testnet.json`](deployments/testnet.json). Contracts are verified on Etherscan / Basescan
 and on Sourcify (Lasna).
 

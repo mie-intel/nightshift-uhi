@@ -44,3 +44,21 @@ controller [`0x376B…EaeC`](https://sepolia.basescan.org/address/0x376B0580116E
 reactive [`0x0809…bB60`](https://lasna.reactscan.net/address/0x0809e4e6016eF2c587B1571DA6D193993F31bB60) ·
 faucet [`0x2954…bF9d`](https://sepolia.basescan.org/address/0x29544B43bD7a87A950E131F4ad726A8Cf2c6bF9d).
 Reproduce: `make news PRICE=104000000`.
+
+---
+
+# v2 — vaults move with the fair price, no trade (20 Nov 2026, live) ← current deployment
+
+Same quorum (issuer on Ethereum Sepolia + sibling pool on Base Sepolia). One `onAnchor` callback now also re-centers
+every registered curator vault (Controller fan-out, ADR-018).
+
+| # | Step | Chain | Tx |
+|---|---|---|---|
+| 1 | Issuer mints at $104 (`Minted`) | Ethereum Sepolia | [0xf4b65c63…](https://sepolia.etherscan.io/tx/0xf4b65c639dbc6591f8902cdba1c39a643c474773e1fd95b25dd4f342ac974671) |
+| 2 | Sibling pool trades to $104 (`Swap`) → 2nd chain completes the quorum | Base Sepolia | [0x1344dd0e…](https://sepolia.basescan.org/tx/0x1344dd0e905cf96c9c9c8cf9923e2aeaa6a190449293c8c24a2a37e71477794a) |
+| 3 | `react()` → quorum → `onAnchor` seq 1 | Lasna | [0x4d426341…](https://lasna.reactscan.net/tx/0x4d4263416efca71c4a52ca2cd439b9322c46c4e12869c6935d484571f26d1357) |
+| 4 | Controller → `hook.setState` + 3× `vault.rebalance` (one tx) | Base Sepolia | [0x567bd17f…](https://sepolia.basescan.org/tx/0x567bd17f5da908ee185ab2d133bc390f31b1916282077b76d2194cf68bcfef44) |
+
+Result: pool fair price $104.00 (anchor tick 229878); the three vaults deployed liquidity around it with no trade on
+the pool — Steady Night [229440, 230700], Balanced Night [229560, 230400], Night Owl [229620, 230100] (wider → narrower
+by mandate; OPEN follow 50% / 70% / 100%). Landed ~5 s after the trades.
