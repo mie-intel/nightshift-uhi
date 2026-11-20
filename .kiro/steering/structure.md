@@ -4,12 +4,13 @@ inclusion: always
 
 # NightShift — repo structure & conventions
 
-## Tree (README §17)
+## Tree (SPEC §17)
 
 ```
 nightshift/
 ├── CLAUDE.md              # Claude Code entry → imports Kiro steering
-├── README.md              # spec (single source of truth; cite § numbers)
+├── README.md              # submission front page (built integrations only)
+├── docs/SPEC.md           # full spec (cite SPEC §N)
 ├── TODO.md                # plan (phase order + done criteria)
 ├── Makefile · .env.example · .gitignore · LICENSE
 ├── .kiro/steering/        # product, tech, structure, glossary (always);
@@ -54,7 +55,7 @@ nightshift/
 
 ## Import patterns
 
-- Remapping aliases (README §16): `@uniswap/v4-core/`, `@uniswap/v4-periphery/`, `@openzeppelin/uniswap-hooks/`, `@openzeppelin/contracts/`, `@reactive/`, `forge-std/`.
+- Remapping aliases (SPEC §16): `@uniswap/v4-core/`, `@uniswap/v4-periphery/`, `@openzeppelin/uniswap-hooks/`, `@openzeppelin/contracts/`, `@reactive/`, `forge-std/`.
 - Interfaces always in `src/interfaces/`; contracts depend on interfaces, not each other, where possible.
 - Shared structs/enums ONLY in `libraries/Types.sol` — never redeclared.
 

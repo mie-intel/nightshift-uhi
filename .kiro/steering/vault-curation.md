@@ -3,7 +3,7 @@ inclusion: fileMatch
 fileMatchPattern: ["contracts/src/vault/**", "contracts/src/registry/**"]
 ---
 
-# Vaults, curation, registry (README §10, §11, §12)
+# Vaults, curation, registry (SPEC §10, §11, §12)
 
 ## Roles (§10.1)
 - **Curator**: deploy vault via factory, queue timelocked mandate changes, earn perf fees. CANNOT move funds, pick arbitrary rebalance ticks, or change fees.

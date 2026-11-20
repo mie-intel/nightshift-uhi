@@ -6,7 +6,7 @@ import {FullMath} from "@uniswap/v4-core/src/libraries/FullMath.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /// @title PriceMath
-/// @notice Ratio -> tick conversion and source normalization into destination tick space (README §7.3).
+/// @notice Ratio -> tick conversion and source normalization into destination tick space (SPEC §7.3).
 library PriceMath {
     /// @notice A ratio input was zero.
     error ZeroAmount();

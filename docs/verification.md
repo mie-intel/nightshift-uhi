@@ -1,4 +1,4 @@
-# Gate 0 verification (README §25)
+# Gate 0 verification (SPEC §25)
 
 Date: 2026-11-18. Method: read installed `reactive-lib-omni` + `OpenZeppelin/uniswap-hooks` source (shallow clones), Reactive dev docs (dev.reactive.network), web search. Each item: **Question · Evidence · Answer · Impact**.
 
@@ -33,7 +33,7 @@ Status legend: ✅ answered · ⚠️ partial / verify live · 🛑 user action.
   Subscribe e.g. `SYSTEM.subscribe(block.chainid, 0x..fffFfF, CRON100_TOPIC0, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE)`. Event data = one `number` (block). **Cron bills every tick even if `react()` no-ops.**
 - **Funding/debt** (`AbstractPayer`): `receive()` payable; `pay(uint256)` only callable by service provider (pulls); `_coverDebt()` pays `_SERVICE_PROVIDER.debt(this)`; errors `NotAuthorized/InsufficientFunds/TransferFailed`. Fund reactive via `SYSTEM.depositTo(reactiveAddr){value}` (settles debt first); fund callback contract via `callbackProxy.depositTo(controllerAddr){value}` in the destination **native token** (ETH/BNB, never REACT). Expose `function coverDebt() external { _coverDebt(); }`. **Any debt > 0 blocks execution** (`BlacklistContract`/`WhitelistContract` events).
 
-**Impact:** Corrects README §13.2 (`memory`→`calldata`, Cron100 ≈ 2 min not ~100 s, Cron lives on `0x..fffFfF`, "no Callback event" wording). tech.md + reactive.md updated; see ADR-007, ADR-008.
+**Impact:** Corrects SPEC §13.2 (`memory`→`calldata`, Cron100 ≈ 2 min not ~100 s, Cron lives on `0x..fffFfF`, "no Callback event" wording). tech.md + reactive.md updated; see ADR-007, ADR-008.
 
 ---
 
@@ -96,7 +96,7 @@ Status legend: ✅ answered · ⚠️ partial / verify live · 🛑 user action.
 
 **Question:** Enough weekend events for candidate mainnet witnesses → choose `minQuorumWeight`, `maxAgeClosed`.
 
-**Evidence:** README §2.1 data: tokenized stocks did $3.96B weekend DEX volume Sept 2026 (~106× Nov 2025); majority of volume off-hours; Uniswap ~60% share. Per-pool weekend log counts require RPC queries against specific chosen-ticker pools — not run (mainnet showcase is a stretch; no ticker chosen yet).
+**Evidence:** SPEC §2.1 data: tokenized stocks did $3.96B weekend DEX volume Sept 2026 (~106× Nov 2025); majority of volume off-hours; Uniswap ~60% share. Per-pool weekend log counts require RPC queries against specific chosen-ticker pools — not run (mainnet showcase is a stretch; no ticker chosen yet).
 
 **Answer:** Aggregate activity is ample; concrete per-pool counts to be measured against the chosen ticker's pools immediately before Phase 11.M.
 

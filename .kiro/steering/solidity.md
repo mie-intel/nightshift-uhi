@@ -14,6 +14,6 @@ fileMatchPattern: ["contracts/**/*.sol"]
 - Use OpenZeppelin `SafeCast` for every narrowing cast (int24/uint16/uint40 packing).
 - No `tx.origin`. Explicit visibility on every function and state var.
 - **No unbounded loops** — cap by constant (`MAX_SOURCES = 16`, `MAX_VAULTS_PER_POOL = 8`); loops over sources/vaults bounded.
-- No upgradeable proxies (README §4.4).
+- No upgradeable proxies (SPEC §4.4).
 - Format with `forge fmt`; `make fmt && make test` before every commit.
-- Before coding against a library API, **read its installed source** (reactive-lib-omni, uniswap-hooks, v4-core/periphery) — names may have drifted (README §13 note).
+- Before coding against a library API, **read its installed source** (reactive-lib-omni, uniswap-hooks, v4-core/periphery) — names may have drifted (SPEC §13 note).

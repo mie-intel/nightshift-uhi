@@ -4,7 +4,7 @@ pragma solidity ^0.8.26;
 import {Regime, RiskParams} from "./Types.sol";
 
 /// @title RiskMath
-/// @notice Gap Risk Score components and the closed-market ratchet (README §8).
+/// @notice Gap Risk Score components and the closed-market ratchet (SPEC §8).
 library RiskMath {
     uint256 private constant BPS = 10_000;
 
@@ -26,7 +26,7 @@ library RiskMath {
         return value * BPS / full;
     }
 
-    /// @notice Raw risk = Σ weight_i · component_i, bps 0–10 000 (README §8.1). Assumes `validate(p)` passed.
+    /// @notice Raw risk = Σ weight_i · component_i, bps 0–10 000 (SPEC §8.1). Assumes `validate(p)` passed.
     /// @param sinceOpenAnchor seconds since the last open-market anchor (reconcile)
     /// @param dispersionTicks weighted MAD of fresh witnesses
     /// @param divergenceTicks |selfTick − anchor|
@@ -45,7 +45,7 @@ library RiskMath {
         return uint16(r / BPS);
     }
 
-    /// @notice Next stored risk (README §8.2). OPEN: raw. Any other regime: max(prev, raw) — risk only ratchets up
+    /// @notice Next stored risk (SPEC §8.2). OPEN: raw. Any other regime: max(prev, raw) — risk only ratchets up
     ///         until reconciliation resets it to 0 (REOPEN_PENDING/HALTED keep the closed-epoch ratchet).
     function next(Regime regime, uint16 prev, uint16 rawRisk) internal pure returns (uint16) {
         if (regime == Regime.OPEN) return rawRisk;

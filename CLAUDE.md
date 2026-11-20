@@ -16,7 +16,7 @@ hook → uniswap-v4-hook · reactive/controller → reactive · vault/registry �
 
 ## Read on demand
 
-- Full spec: README.md (section numbers are stable — cite them in commits/PRs)
+- Full spec: docs/SPEC.md (section numbers are stable — cite "SPEC §N" in commits/PRs). README.md = submission front page.
 - Plan and status: TODO.md
 - Decisions: .kiro/steering/decisions.md
 - Deadlines, forms, pitch: .kiro/steering/hookathon.md

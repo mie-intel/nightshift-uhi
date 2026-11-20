@@ -3,7 +3,7 @@ inclusion: fileMatch
 fileMatchPattern: ["app/**"]
 ---
 
-# Dashboard (`app/`) spec (README §22.3, ADR-016)
+# Dashboard (`app/`) spec (SPEC §22.3, ADR-016)
 
 ## Stack (light + fast — ADR-016)
 Vite + React + TypeScript (static SPA, no SSR) · `viem` + `wagmi` (injected wallet only, no RainbowKit) · TanStack Query (wagmi peer) · Tailwind v4 (`@tailwindcss/vite`). Charts = hand-rolled SVG (no Recharts). System font stack (no web-font download). Minimal ABIs via `parseAbi` (never import forge artifacts into the bundle).

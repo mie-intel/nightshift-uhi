@@ -127,7 +127,7 @@ contract NightShiftVaultTest is HookFixture {
         vault.withdraw(s, 2e18, 0, address(this));
     }
 
-    // ---------------------------------------------------------------- rebalance geometry (README §10.2)
+    // ---------------------------------------------------------------- rebalance geometry (SPEC §10.2)
 
     function test_rebalance_followsAnchor_withNoTrade() public {
         vault.deposit(10e18, 10e18, 0, address(this));
@@ -176,7 +176,7 @@ contract NightShiftVaultTest is HookFixture {
         assertApproxEqAbs(int256(c), int256(uint256(m.open.followBps)) * 1000 / 10_000, 60);
     }
 
-    // ---------------------------------------------------------------- reconcile vs HODL + HWM (README §11)
+    // ---------------------------------------------------------------- reconcile vs HODL + HWM (SPEC §11)
 
     function test_reconcile_feesBeatHodl_curatorPaidAboveHwm() public {
         hook.setRegime(poolId, Regime.OPEN, ++seq); // no move caps for the round trips

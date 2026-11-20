@@ -12,7 +12,7 @@ import {NyseCalendar} from "../libraries/NyseCalendar.sol";
 import {Regime} from "../libraries/Types.sol";
 
 /// @title NightShiftController
-/// @notice Destination-chain receiver of Reactive callbacks (README §13.1). Authenticates every callback with BOTH
+/// @notice Destination-chain receiver of Reactive callbacks (SPEC §13.1). Authenticates every callback with BOTH
 ///         `onlyServiceProvider` (msg.sender == callback proxy) and `onlyCallbackSender` (injected first arg ==
 ///         our reactive contract) — ADR-008 — then fans out to the hook and the registered curator vaults
 ///         (try/catch per vault: one failing vault never blocks a callback). Also the vault registry (ADR-018). Also holds the permissionless safety
@@ -71,7 +71,7 @@ contract NightShiftController is AbstractCallback, INightShiftController {
     /// @notice A new closed epoch started.
     event EpochStarted(bytes32 indexed poolId, uint64 epochId);
 
-    /// @param callbackProxy_ Reactive callback proxy on this chain (README §18.2)
+    /// @param callbackProxy_ Reactive callback proxy on this chain (SPEC §18.2)
     /// @param reactive_ NightShiftReactive address on Reactive Network (callback sender identity)
     /// @param hook_ NightShiftHook
     /// @param reconcileTimeout_ seconds (config `quorum.reconcileTimeoutSeconds`)
@@ -159,7 +159,7 @@ contract NightShiftController is AbstractCallback, INightShiftController {
     }
 
     /// @notice Permissionless: align the pool regime with the NYSE calendar on this chain if Reactive is late
-    ///         (README §6.3). OPEN→CLOSED when the market has closed; CLOSED→REOPEN_PENDING when it has opened.
+    ///         (SPEC §6.3). OPEN→CLOSED when the market has closed; CLOSED→REOPEN_PENDING when it has opened.
     function syncRegime(bytes32 poolId) external {
         PoolId id = PoolId.wrap(poolId);
         bool open = NyseCalendar.isOpen(block.timestamp);
@@ -188,6 +188,12 @@ contract NightShiftController is AbstractCallback, INightShiftController {
     /// @notice Repay any outstanding callback debt to the proxy from this contract's balance (debt blocks callbacks).
     function coverDebt() external {
         _coverDebt();
+    }
+
+    /// @notice Admin recovers callback funding (e.g. before a redeploy).
+    function withdraw(address payable to, uint256 amount) external {
+        if (msg.sender != admin) revert NotRegistrar();
+        _pay(to, amount);
     }
 
     function _startEpoch(bytes32 poolId) internal {

@@ -2,7 +2,7 @@
 
 > **Claude, read this before anything else.**
 >
-> 1. `README.md` is the specification (the _what_ and _why_). This file is the plan (the _order_ and _done criteria_).
+> 1. `docs/SPEC.md` is the specification (the _what_ and _why_). This file is the plan (the _order_ and _done criteria_).
 > 2. **Phase 0 comes first and is mandatory:** set up project context (`CLAUDE.md` → Kiro steering files). Write no contract code until Phase 0 is checked off.
 > 3. Work top to bottom. Tick a box only when its **acceptance criteria** are met (tests green, files exist, links recorded).
 > 4. Every time you learn something that contradicts the README or a steering file, fix the file and add an entry to `.kiro/steering/decisions.md`.
@@ -39,9 +39,9 @@ Design:
 
 ### 0.1 Bootstrap the repo
 
-- [ ] `git init` on branch `main`; add `.gitignore` (Foundry `out/`, `cache/`, `broadcast/*/dry-run`, `node_modules/`, `.next/`, `.env`, `*.sqlite`, `recorder/data/`), `LICENSE` (MIT), `.env.example` (copy README §19).
-- [ ] Create the folder skeleton from README §17 (use `.gitkeep` in empty folders).
-- **Done when:** `tree -a -L 3` matches README §17 (minus files created in later phases).
+- [ ] `git init` on branch `main`; add `.gitignore` (Foundry `out/`, `cache/`, `broadcast/*/dry-run`, `node_modules/`, `.next/`, `.env`, `*.sqlite`, `recorder/data/`), `LICENSE` (MIT), `.env.example` (copy SPEC §19).
+- [ ] Create the folder skeleton from SPEC §17 (use `.gitkeep` in empty folders).
+- **Done when:** `tree -a -L 3` matches SPEC §17 (minus files created in later phases).
 
 ### 0.2 Foundational steering files (`inclusion: always`)
 
@@ -53,12 +53,12 @@ Front matter must be the **very first lines** of each file (no blank line before
   inclusion: always
   ---
   ```
-  Must contain: one-paragraph pitch (README §4.1); the problem in 5 bullets ("stranded anchor", §2.2–2.3); the four layers + corporate actions (§4.2); how it increases transactions (§4.3); non-goals (§4.4); **the four project criteria** (§1.2) and **Reactive's three-question bar** (§1.3) as a checklist every feature must pass; UHI11 theme mapping table (§1.1); prior-art one-liners and the differentiation sentence (§3); target users (curators, depositors/LPs, traders, issuers); success metrics (§21.3 metrics); hookathon dates.
+  Must contain: one-paragraph pitch (SPEC §4.1); the problem in 5 bullets ("stranded anchor", §2.2–2.3); the four layers + corporate actions (§4.2); how it increases transactions (§4.3); non-goals (§4.4); **the four project criteria** (§1.2) and **Reactive's three-question bar** (§1.3) as a checklist every feature must pass; UHI11 theme mapping table (§1.1); prior-art one-liners and the differentiation sentence (§3); target users (curators, depositors/LPs, traders, issuers); success metrics (§21.3 metrics); hookathon dates.
 - [ ] `.kiro/steering/tech.md` (≤ 150 lines)
       Must contain: stack table (§16) with **pinned versions filled in after Phase 2**; compiler settings (0.8.26+/cancun for destination, 0.8.29 profile for reactive); Reactive Omni essentials (SYSTEM address, `react(LogRecord memory) onlySystem`, `SYSTEM.subscribe`, `SYSTEM.requestCallbackV_1_0`, first-arg identity rule, no `Callback` event, no RVM); Uniswap v4 essentials (dynamic fee flag + override flag, hook permissions used, HookMiner + CREATE2 deployer, transient storage for per-swap stash, fee units in pips); chain/addresses tables (§18) — copy exactly; topology (§18.5); commands (§20); env var names (§19, no values); technical constraints (no proxies, no vault swaps, in-kind flows, tick space everywhere, params in config JSON).
 - [ ] `.kiro/steering/structure.md` (≤ 100 lines)
       Must contain: repo tree (§17); where each contract lives and what it owns; naming conventions (contracts, libraries, tests `X.t.sol`, scenarios `Scenario_SN_Name.t.sol`, scripts numbered); import patterns (remapping aliases, interfaces in `src/interfaces/`, shared structs/enums only in `libraries/Types.sol`); config files and `deployments/*.json` layout; docs layout.
-- [ ] `.kiro/steering/glossary.md` (≤ 50 lines) — copy README §26.
+- [ ] `.kiro/steering/glossary.md` (≤ 50 lines) — copy SPEC §26.
 
 ### 0.3 Scoped steering files (`inclusion: fileMatch`)
 
@@ -72,13 +72,13 @@ fileMatchPattern: ["contracts/**/*.sol"]
 ```
 
 - [ ] `solidity.md` — `contracts/**/*.sol`: pragma rules; custom errors; NatSpec on externals; `immutable`/`constant` use; events for every state change; checks-effects-interactions; `SafeCast`; no `tx.origin`; no unbounded loops (cap constants); explicit visibility; gas notes; formatting via `forge fmt`.
-- [ ] `uniswap-v4-hook.md` — `contracts/src/hook/**`, `contracts/src/libraries/FeeMath.sol`: README §9 + §13.1 hook spec; permissions and mined address flags; dynamic fee mechanics; transient storage stash between `beforeSwap` and `afterSwap`; direction rules; move caps; stale-anchor fallback; `quoteFee` view; reference to `ControlClosedSurchargeHook` and Gapguard credit.
-- [ ] `reactive.md` — `contracts/src/reactive/**`, `contracts/src/controller/**`, `contracts/src/libraries/{WitnessMath,RiskMath,PriceMath}.sol`: README §7, §8, §13.2, §14, §18.1–18.2; callback authentication; seq/epoch rules; debounce; Cron usage; funding; **the "callback must actually fire" rule**; Lasna vs mainnet never mixed.
-- [ ] `vault-curation.md` — `contracts/src/vault/**`, `contracts/src/registry/**`: README §10, §11, §12; mandate struct and presets; in-kind flows; rebalance algorithm; snapshot/reconcile math; HWM; migration; role table.
-- [ ] `testing.md` — `contracts/test/**`: README §21; ReactiveHarness design; scenario list S1–S8 with expected behavior; metrics; naming; fuzz/invariant conventions; "every bug fix gets a regression test".
-- [ ] `security.md` — `contracts/src/**`: README §15 threats table + invariants; disclaimers; "ASK USER before mainnet".
-- [ ] `frontend.md` — `app/**`: README §22.3 pages; stack; read addresses from `deployments/*.json`; explorer link formats; no private keys in the frontend.
-- [ ] `recorder.md` — `recorder/**`: README §22.1–22.2; idempotent, resumable; storage format; flow bot honesty rule (scripted destination flow, real witnesses on mainnet).
+- [ ] `uniswap-v4-hook.md` — `contracts/src/hook/**`, `contracts/src/libraries/FeeMath.sol`: SPEC §9 + §13.1 hook spec; permissions and mined address flags; dynamic fee mechanics; transient storage stash between `beforeSwap` and `afterSwap`; direction rules; move caps; stale-anchor fallback; `quoteFee` view; reference to `ControlClosedSurchargeHook` and Gapguard credit.
+- [ ] `reactive.md` — `contracts/src/reactive/**`, `contracts/src/controller/**`, `contracts/src/libraries/{WitnessMath,RiskMath,PriceMath}.sol`: SPEC §7, §8, §13.2, §14, §18.1–18.2; callback authentication; seq/epoch rules; debounce; Cron usage; funding; **the "callback must actually fire" rule**; Lasna vs mainnet never mixed.
+- [ ] `vault-curation.md` — `contracts/src/vault/**`, `contracts/src/registry/**`: SPEC §10, §11, §12; mandate struct and presets; in-kind flows; rebalance algorithm; snapshot/reconcile math; HWM; migration; role table.
+- [ ] `testing.md` — `contracts/test/**`: SPEC §21; ReactiveHarness design; scenario list S1–S8 with expected behavior; metrics; naming; fuzz/invariant conventions; "every bug fix gets a regression test".
+- [ ] `security.md` — `contracts/src/**`: SPEC §15 threats table + invariants; disclaimers; "ASK USER before mainnet".
+- [ ] `frontend.md` — `app/**`: SPEC §22.3 pages; stack; read addresses from `deployments/*.json`; explorer link formats; no private keys in the frontend.
+- [ ] `recorder.md` — `recorder/**`: SPEC §22.1–22.2; idempotent, resumable; storage format; flow bot honesty rule (scripted destination flow, real witnesses on mainnet).
 
 ### 0.4 Manual steering files (`inclusion: manual`)
 
@@ -89,7 +89,7 @@ fileMatchPattern: ["contracts/**/*.sol"]
   - ADR-004 Fee semantics: toward = repair flow served with gap capture; away = steep + capped (refines the "toward stays cheap" wording in the idea form).
   - ADR-005 Testnet topology (Unichain Sepolia destination; Sepolia + Base Sepolia origins; Lasna).
   - ADR-006 Destination calendar fallback + anchor staleness for defense in depth.
-- [ ] `hookathon.md` — dates and deadlines (UTC and PST), forms (Project Update https://tally.so/r/m6lP9e, Final https://tally.so/r/mVNEAE), deliverables checklist (README §24), live recording schedule (§23), pitch one-liner, demo script outline, credits that must appear (Gapguard, Maestro, trading-days).
+- [ ] `hookathon.md` — dates and deadlines (UTC and PST), forms (Project Update https://tally.so/r/m6lP9e, Final https://tally.so/r/mVNEAE), deliverables checklist (SPEC §24), live recording schedule (§23), pitch one-liner, demo script outline, credits that must appear (Gapguard, Maestro, trading-days).
 
 ### 0.5 Claude Code bridges (`.claude/rules/`)
 
@@ -135,7 +135,7 @@ fileMatchPattern: ["contracts/**/*.sol"]
 
   ## Read on demand
 
-  - Full spec: README.md (section numbers are stable — cite them in commits/PRs)
+  - Full spec: docs/SPEC.md (section numbers are stable — cite "SPEC §N" in commits/PRs). README.md = submission front page.
   - Plan and status: TODO.md
   - Decisions: .kiro/steering/decisions.md
   - Deadlines, forms, pitch: .kiro/steering/hookathon.md
@@ -167,7 +167,7 @@ fileMatchPattern: ["contracts/**/*.sol"]
 
 ---
 
-## Phase 1 — Gate 0 verifications (README §25)
+## Phase 1 — Gate 0 verifications (SPEC §25)
 
 Output: `docs/verification.md` with one section per item: question, evidence (links, ABI snippets, tx hashes), answer, impact.
 
@@ -185,9 +185,9 @@ Output: `docs/verification.md` with one section per item: question, evidence (li
 ## Phase 2 — Scaffolding and tooling
 
 - [x] `contracts/` Foundry project: `foundry.toml` with `[profile.default]` (src, out, libs, `evm_version = "cancun"`, `via_ir` only if needed, fuzz runs 256, invariant runs 64) and `[profile.reactive]` (0.8.29 settings per G0.4); `fs_permissions` for `config/` and `../deployments/`.
-- [x] Install deps (README §16.1); write `remappings.txt` (`@uniswap/v4-core/`, `@uniswap/v4-periphery/`, `@openzeppelin/uniswap-hooks/`, `@openzeppelin/contracts/`, `@reactive/`, `forge-std/`).
-- [x] `contracts/config/testnet.json` and `mainnet.json` with all parameters from README §7–§11 (pool params, quorum, risk, debounce, mandates presets, gas limits).
-- [x] `Makefile` with all targets in README §20 (stubs allowed for later phases, but must exit non-zero with a clear message).
+- [x] Install deps (SPEC §16.1); write `remappings.txt` (`@uniswap/v4-core/`, `@uniswap/v4-periphery/`, `@openzeppelin/uniswap-hooks/`, `@openzeppelin/contracts/`, `@reactive/`, `forge-std/`).
+- [x] `contracts/config/testnet.json` and `mainnet.json` with all parameters from SPEC §7–§11 (pool params, quorum, risk, debounce, mandates presets, gas limits).
+- [x] `Makefile` with all targets in SPEC §20 (stubs allowed for later phases, but must exit non-zero with a clear message).
 - [x] pnpm workspace (`pnpm-workspace.yaml`) with `recorder/` and `app/` packages (empty shells).
 - [x] GitHub Actions `ci.yml`: `forge fmt --check`, `forge build`, `forge test`, `scripts/check-context.sh`, `pnpm -r lint`, `pnpm -r build`.
 - [x] Fill pinned versions into `.kiro/steering/tech.md`.
@@ -211,7 +211,7 @@ Output: `docs/verification.md` with one section per item: question, evidence (li
 
 Smallest end-to-end loop on real testnets, before building full features.
 
-- [x] `DemoToken`, `MockIssuer` (README §13.3).
+- [x] `DemoToken`, `MockIssuer` (SPEC §13.3).
 - [x] `NightShiftHook` v0: permissions, dynamic fee required, `setState` (onlyController), fee = `baseClosed` + simple away surcharge; emits `SwapObserved`.
 - [x] `NightShiftController` v0: authenticated `onAnchor` → `hook.setState`; `seq` check.
 - [x] `NightShiftReactive` v0: subscribe to `MockIssuer.Minted` on Ethereum Sepolia; on event compute tick (PriceMath), request `onAnchor` callback to the destination (Base Sepolia, ADR-015).
@@ -225,14 +225,14 @@ Smallest end-to-end loop on real testnets, before building full features.
 
 ## Phase 5 — Full hook
 
-- [x] Full fee schedule (README §9.2) via `FeeMath` (one `PoolConfig` per hook from config; per-pool registry config cut — ADR-013/017).
+- [x] Full fee schedule (SPEC §9.2) via `FeeMath` (one `PoolConfig` per hook from config; per-pool registry config cut — ADR-013/017).
 - [x] Transient-storage stash of `tickBefore`/`away` between `beforeSwap` and `afterSwap`.
 - [x] Move caps + overshoot (§9.3) in `afterSwap`.
 - [x] Stale-anchor fallback (§9.4) + `AnchorStale` event. + local-divergence `riskUsed` floor (§8.3).
 - [x] `setRegime` (own seq channel), `forceRegime` (fallbacks), `HALTED` revert. `applyCorporateAction` cut (ADR-013).
 - [ ] `beforeAddLiquidity` `curatedOnly` gate.
 - [x] `quoteFee` view.
-- [x] Unit + fuzz tests per README §21.1. (gas snapshot: pending)
+- [x] Unit + fuzz tests per SPEC §21.1. (gas snapshot: pending)
 - **Done when:** hook tests green; fee never exceeds caps under fuzz.
 
 ---
@@ -247,7 +247,9 @@ Smallest end-to-end loop on real testnets, before building full features.
 
 ---
 
-## Phase 7 — Local end-to-end `ReactiveHarness` (README §21.2)
+## Phase 7 — Local end-to-end `ReactiveHarness` (SPEC §21.2)
+
+> ✅ 20 Nov: done — `test/utils/ReactiveHarness.sol` + `test/integration/WeekendLoop.t.sol` (full weekend incl. vault). See ADR-017/018.
 
 - [ ] Harness: etch SYSTEM, convert origin events to `LogRecord`s, call `react()`, relay queued callbacks with identity overwrite under `vm.prank(callbackProxy)`, warp for Cron.
 - [ ] Integration test: close → witness move → anchor → (vault stub) → reopen → reconcile.
@@ -261,7 +263,7 @@ Smallest end-to-end loop on real testnets, before building full features.
 - [ ] `NightShiftVault`: in-kind pro-rata `deposit`/`withdraw`; `unlockCallback` + `modifyLiquidity` + `CurrencySettler`; core/wide positions with salts; `rebalance` algorithm (§10.3); mandate timelock; views.
 - [ ] `VaultFactory`.
 - [ ] Mandate presets (Conservative/Balanced/Aggressive) in config + script `05_CreateCuratorVaults`.
-- [ ] Unit, fuzz and invariant tests (README §15.2 #5).
+- [ ] Unit, fuzz and invariant tests (SPEC §15.2 #5).
 - **Done when:** vault invariants hold under invariant testing; harness test now uses real vaults.
 
 ---
@@ -276,7 +278,7 @@ Smallest end-to-end loop on real testnets, before building full features.
 
 ---
 
-## Phase 10 — Scenarios and comparison (README §21.3)
+## Phase 10 — Scenarios and comparison (SPEC §21.3)
 
 - [ ] `ControlClosedSurchargeHook` (Gapguard-style, credited) + static control pool setup helper.
 - [ ] Scenario tests S1–S8, each against static / Gapguard-style / NightShift with identical liquidity and flows.
@@ -288,10 +290,10 @@ Smallest end-to-end loop on real testnets, before building full features.
 
 ## Phase 11 — Testnet full deployment and live recording
 
-- [ ] Redeploy full system on testnet topology (README §18.5); verify contracts on explorers.
+- [ ] Redeploy full system on testnet topology (SPEC §18.5); verify contracts on explorers.
 - [ ] Seed liquidity in main pool, control pools and sibling pools; create 3 curator vaults; deposit from 2–3 test wallets.
 - [ ] Recorder running across all chains (Phase 12) before the first window.
-- [ ] Live windows (README §23): Thanksgiving (26 Nov), Black Friday early close (27 Nov 18:00 UTC), weekend 27–30 Nov, reconcile at Mon 30 Nov 14:30–14:45 UTC.
+- [ ] Live windows (SPEC §23): Thanksgiving (26 Nov), Black Friday early close (27 Nov 18:00 UTC), weekend 27–30 Nov, reconcile at Mon 30 Nov 14:30–14:45 UTC.
 - [ ] Flow bot runs a scripted news event on Saturday 28 Nov (sibling + issuer move) and mixed toward/away flow.
 - [ ] Export recordings to `docs/recordings/live-2026-11-26_30/`.
 - **Done when:** regime callbacks for every transition, at least one news-driven anchor move with vault recenter **without a destination trade**, and one reconciliation with leaderboard update are all in explorers and in the export.
@@ -317,7 +319,7 @@ Smallest end-to-end loop on real testnets, before building full features.
 ## Phase 13 — Dashboard (`app/`)
 
 - [ ] Next.js app with wagmi/viem; reads `deployments/*.json` and report JSON.
-- [ ] Pages: Live, Curators (leaderboard + deposit/withdraw/migrate), Epochs, Comparison, How it works (README §22.3).
+- [ ] Pages: Live, Curators (leaderboard + deposit/withdraw/migrate), Epochs, Comparison, How it works (SPEC §22.3).
 - [ ] Explorer links for every callback (Reactscan + destination explorer).
 - [ ] Deploy to Vercel (🛑 ASK USER for account).
 - **Done when:** a judge can open the URL and see live state + recorded comparisons without a wallet.
@@ -330,7 +332,7 @@ Smallest end-to-end loop on real testnets, before building full features.
 - [ ] Re-run invariants with higher runs; coverage report.
 - [ ] Update README: final addresses, recordings, results table, limitations, future work (curator bonds/slashing, more witnesses, more tickers, aggregator quoting).
 - [ ] `docs/pitch.md` (problem → stranded anchor → solution → proof → prior art → why Reactive → metrics → ask).
-- [ ] `docs/demo-script.md` (README §23 outline) and record the ≤ 5 min video (🛑 user records/narrates).
+- [ ] `docs/demo-script.md` (SPEC §23 outline) and record the ≤ 5 min video (🛑 user records/narrates).
 - **Done when:** README reads as a finished project page; pitch and script ready.
 
 ---

@@ -2,7 +2,7 @@
 inclusion: always
 ---
 
-# NightShift — glossary (README §26)
+# NightShift — glossary (SPEC §26)
 
 | Term | Meaning |
 | --- | --- |

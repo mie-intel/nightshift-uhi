@@ -27,8 +27,8 @@ import {Mandate, Regime, RegimeMandate} from "../libraries/Types.sol";
 /// @title NightShiftVault
 /// @notice One curator, one pool. Depositors follow the curator; the Controller (fed by Reactive) moves the
 ///         liquidity onto the witnessed fair price — between trades — per the curator's per-regime mandate
-///         (README §10). At the reopen the epoch is scored vs HODL at the witnessed open tick; the curator earns a
-///         performance fee only on alpha above the high-water mark (README §11).
+///         (SPEC §10). At the reopen the epoch is scored vs HODL at the witnessed open tick; the curator earns a
+///         performance fee only on alpha above the high-water mark (SPEC §11).
 /// @dev MVP (ADR-018): a single concentrated position + idle balances. Flows are in-kind and pro-rata, so no price
 ///      is needed to deposit/withdraw (no stale-NAV games). The vault never swaps. The curator cannot move funds,
 ///      pick ticks or change the mandate after deployment. Values are in currency1 units.

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.26;
 
 /// @title INightShiftController
-/// @notice Reactive callback entry points (README §13.1). The first argument is always the reactive identity,
+/// @notice Reactive callback entry points (SPEC §13.1). The first argument is always the reactive identity,
 ///         sent as address(0) by the reactive contract and overwritten by the callback proxy.
 interface INightShiftController {
     /// @notice New anchor/risk for a pool (anchor seq channel).

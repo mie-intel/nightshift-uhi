@@ -3,11 +3,11 @@ inclusion: fileMatch
 fileMatchPattern: ["contracts/src/reactive/**", "contracts/src/controller/**", "contracts/src/libraries/WitnessMath.sol", "contracts/src/libraries/RiskMath.sol", "contracts/src/libraries/PriceMath.sol"]
 ---
 
-# Reactive + Controller spec (README §7, §8, §13.2, §14, §18.1–18.2)
+# Reactive + Controller spec (SPEC §7, §8, §13.2, §14, §18.1–18.2)
 
 > API below **verified** against `reactive-lib-omni` source + docs (docs/verification.md G0.3). Re-read the installed source at Phase 2 pin time in case of version drift.
 
-## The rule that defines success (README §1.3)
+## The rule that defines success (SPEC §1.3)
 A callback must **actually fire**: reactive tx on Lasna/mainnet **+** the destination callback tx, both visible in explorers. Gate 1 is the first milestone. Never mix Lasna and mainnet.
 
 ## Callback authentication (VERIFIED G0.3/E — use BOTH modifiers, always)

@@ -6,7 +6,7 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {DemoToken} from "./DemoToken.sol";
 
 /// @title MockIssuer
-/// @notice Testnet stand-in for an issuer's 24/7 mint/redeem desk (README §13.3, ADR-011). Mints/redeems `share`
+/// @notice Testnet stand-in for an issuer's 24/7 mint/redeem desk (SPEC §13.3, ADR-011). Mints/redeems `share`
 ///         against `quote` at an owner-set price. Its `Minted`/`Redeemed` events are the strongest witness (weight 5).
 /// @dev Requires MINTER rights on `share`. Holds quote received from mints to pay redemptions.
 contract MockIssuer is Ownable {
@@ -28,7 +28,7 @@ contract MockIssuer is Ownable {
     event Minted(address indexed to, uint256 shares, uint256 quoteAmount);
     /// @notice Shares redeemed for quote (issuer witness).
     event Redeemed(address indexed from, uint256 shares, uint256 quoteAmount);
-    /// @notice Corporate-action multiplier change (README §12).
+    /// @notice Corporate-action multiplier change (SPEC §12).
     event MultiplierUpdated(uint256 oldM, uint256 newM, uint256 effectiveAt);
     /// @notice Issuer price changed (not a witness — only executions are).
     event PriceSet(uint256 price);

@@ -38,7 +38,7 @@ contract FeeMathTest is Test {
 
     function setUp() public {
         h = new FeeMathHarness();
-        // README §9.5 defaults (= contracts/config/testnet.json "fee")
+        // SPEC §9.5 defaults (= contracts/config/testnet.json "fee")
         c = PoolConfig({
             baseOpen: 3000,
             baseClosed: 3000,
@@ -69,7 +69,7 @@ contract FeeMathTest is Test {
         h.validate(c);
     }
 
-    // ---------- direction (README §9.1) ----------
+    // ---------- direction (SPEC §9.1) ----------
 
     function test_direction_table() public view {
         bool away;
@@ -97,7 +97,7 @@ contract FeeMathTest is Test {
         assertTrue(away);
     }
 
-    // ---------- fee schedule (README §9.2) ----------
+    // ---------- fee schedule (SPEC §9.2) ----------
 
     function test_fee_open() public view {
         assertEq(h.fee(c, Regime.OPEN, false, 200, 0), 3000);
@@ -157,7 +157,7 @@ contract FeeMathTest is Test {
         assertGe(h.fee(c, Regime.CLOSED, true, d, 0), h.fee(c, Regime.OPEN, false, d, 0));
     }
 
-    // ---------- move caps (README §9.3) ----------
+    // ---------- move caps (SPEC §9.3) ----------
 
     function test_awayMove_withinCap_ok() public view {
         h.checkMove(c, Regime.CLOSED, true, 0, 0, false, 0, 100);

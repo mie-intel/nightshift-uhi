@@ -2,7 +2,7 @@
 pragma solidity ^0.8.26;
 
 /// @title WitnessMath
-/// @notice Influence cap, time-weighted EWMA, freshness weight, weighted median and weighted MAD (README §7.4–§7.5).
+/// @notice Influence cap, time-weighted EWMA, freshness weight, weighted median and weighted MAD (SPEC §7.4–§7.5).
 /// @dev All values in destination ticks. Kept lean: runs inside react() (900k gas cap).
 library WitnessMath {
     /// @notice Fixed-point scale for effective (freshness-decayed) weights.

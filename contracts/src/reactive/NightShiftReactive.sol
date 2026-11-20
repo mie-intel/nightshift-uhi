@@ -14,7 +14,7 @@ import {GasLimits, QuorumParams, Regime, RiskParams, SourceKind, WitnessSource} 
 /// @title NightShiftReactive
 /// @notice Runs on Reactive Network. Subscribes to witness events on several chains (issuer mint/redeem, sibling
 ///         Uniswap v4 pools, the destination pool itself) plus Cron, and pushes state into the destination pool
-///         between trades (README §7, §8, §13.2):
+///         between trades (SPEC §7, §8, §13.2):
 ///         - Witness Quorum: per-source influence cap + time-weighted EWMA; anchor = weighted median of fresh
 ///           sources; quorum needs `minQuorumWeight` AND `minDistinctChains`.
 ///         - Gap Risk Score: time/dispersion/divergence/staleness; ratchets up while closed.
@@ -119,13 +119,13 @@ contract NightShiftReactive is AbstractReactive {
     event Withdrawn(address to, uint256 amount);
     /// @notice Paused / unpaused.
     event PausedSet(bool paused);
-    /// @notice A witness observation was processed (README §14.4). `destTick` raw, `ewma` smoothed (clamped).
+    /// @notice A witness observation was processed (SPEC §14.4). `destTick` raw, `ewma` smoothed (clamped).
     event WitnessObserved(uint256 indexed source, uint256 chainId, int24 destTick, int24 ewma);
-    /// @notice Quorum/anchor/risk recomputed (README §14.4).
+    /// @notice Quorum/anchor/risk recomputed (SPEC §14.4).
     event QuorumComputed(bool quorum, int24 anchor, uint16 dispersion, uint16 riskBps, uint8 sources, uint8 chains);
     /// @notice Regime transition detected on Cron.
     event RegimeChanged(Regime regime, uint64 epochId);
-    /// @notice A callback was requested (README §14.4).
+    /// @notice A callback was requested (SPEC §14.4).
     event CallbackRequested(uint8 indexed kind, uint64 seq, int24 anchorTick, uint16 riskBps, uint8 regime);
 
     constructor(
@@ -306,7 +306,7 @@ contract NightShiftReactive is AbstractReactive {
         if (q && (force || _shouldSend())) _sendAnchor(n);
     }
 
-    /// @dev README §7.6 debounce: (moved ≥ minDelta OR risk bucket changed OR heartbeat) AND min interval.
+    /// @dev SPEC §7.6 debounce: (moved ≥ minDelta OR risk bucket changed OR heartbeat) AND min interval.
     function _shouldSend() internal view returns (bool) {
         if (!sentOnce) return true;
         uint256 elapsed = block.timestamp - lastCallbackAt;
@@ -316,7 +316,7 @@ contract NightShiftReactive is AbstractReactive {
         return elapsed >= _q.heartbeatSeconds;
     }
 
-    /// @dev Fresh, enabled, non-SELF sources → weighted median + MAD + quorum test (README §7.5).
+    /// @dev Fresh, enabled, non-SELF sources → weighted median + MAD + quorum test (SPEC §7.5).
     function _computeQuorum() internal view returns (bool q, int24 a, uint16 disp, uint8 n, uint8 nChains) {
         uint256 len = _sources.length;
         int24[] memory vals = new int24[](len);

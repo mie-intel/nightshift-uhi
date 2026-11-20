@@ -4,7 +4,7 @@ C := contracts
 SHELL := /bin/bash
 
 .PHONY: help install build build-reactive test test-scenarios coverage slither fmt fmt-check \
-        deploy-testnet deploy-origin deploy-dest deploy-reactive deploy-controller wire-reactive deploy-faucet app-build news \
+        deploy-testnet deploy-origin deploy-dest deploy-reactive deploy-controller wire-reactive deploy-faucet deploy-vaults app-build news \
         fund-reactive e2e-testnet record report app check-context
 
 # Load .env (never committed) into recipe shells. Override per-chain forge flags if a chain needs e.g. --legacy.
@@ -52,7 +52,7 @@ fmt-check: ## forge fmt --check (CI)
 check-context: ## verify @imports in CLAUDE.md + .claude/rules
 	./scripts/check-context.sh
 
-deploy-testnet: deploy-origin deploy-dest deploy-reactive deploy-controller wire-reactive ## full testnet deploy (00-04) → deployments/testnet.json
+deploy-testnet: deploy-origin deploy-dest deploy-faucet deploy-reactive deploy-controller deploy-vaults wire-reactive ## full testnet deploy → deployments/testnet.json
 
 deploy-origin: ## 00: demo tokens + MockIssuer on Ethereum Sepolia
 	$(ENV) cd $(C) && forge script script/00_DeployOrigin.s.sol --rpc-url $$RPC_ETH_SEPOLIA --broadcast $(ORIGIN_FLAGS)
@@ -68,6 +68,9 @@ deploy-controller: ## 03: Controller on Base Sepolia + hook.initController
 
 wire-reactive: ## 04: reactive.setController + subscribe (Lasna)
 	$(ENV) cd $(C) && $(REACTIVE_BUILD) forge script script/04_WireReactive.s.sol $(REACTIVE_SKIP) --rpc-url $$RPC_LASNA --broadcast $(LASNA_FLAGS)
+
+deploy-vaults: ## 08: VaultFactory + 3 demo curator vaults with seed deposits (Base Sepolia)
+	$(ENV) cd $(C) && forge script script/08_DeployVaults.s.sol --rpc-url $$RPC_BASE_SEPOLIA --broadcast
 
 deploy-faucet: ## 06: public demo-token faucet on Base Sepolia (for dashboard swaps)
 	$(ENV) cd $(C) && forge script script/06_DeployFaucet.s.sol --rpc-url $$RPC_BASE_SEPOLIA --broadcast

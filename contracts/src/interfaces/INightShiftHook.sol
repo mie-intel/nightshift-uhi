@@ -6,7 +6,7 @@ import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
 import {Regime} from "../libraries/Types.sol";
 
 /// @title INightShiftHook
-/// @notice Controller-facing surface of the NightShift hook (README §13.1).
+/// @notice Controller-facing surface of the NightShift hook (SPEC §13.1).
 interface INightShiftHook {
     /// @notice Push a new anchor/risk snapshot. Only Controller; `seq` must exceed the pool's last seq.
     function setState(PoolId id, int24 anchorTick, uint16 riskBps, uint16 dispersionTicks, uint64 seq) external;

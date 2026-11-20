@@ -7,7 +7,7 @@ import {IReactive} from "@reactive/interfaces/IReactive.sol";
 import {MockSystemContract} from "../../src/mocks/MockSystemContract.sol";
 
 /// @title ReactiveHarness
-/// @notice Simulates Reactive Network locally (README §21.2) — and documents how the real loop works:
+/// @notice Simulates Reactive Network locally (SPEC §21.2) — and documents how the real loop works:
 ///         1. SYSTEM (0x8888…8888) is a MockSystemContract that records subscriptions and queues callbacks.
 ///         2. Origin-chain events are captured with vm.recordLogs and turned into LogRecords.
 ///         3. The harness calls react() as SYSTEM.

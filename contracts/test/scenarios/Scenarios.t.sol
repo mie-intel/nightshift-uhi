@@ -16,7 +16,7 @@ import {HookFixture} from "../utils/HookFixture.sol";
 import {Regime} from "../../src/libraries/Types.sol";
 
 /// @title Scenario replays: static 0.30% pool vs NightShift pool, identical liquidity and identical order flow
-///        (README §21.3). Market CLOSED all weekend; the reopen price is the witnessed fair price.
+///        (SPEC §21.3). Market CLOSED all weekend; the reopen price is the witnessed fair price.
 /// @notice Metrics per pool: swaps filled / blocked, LP PnL vs HODL at the reopen price (fees included, bps),
 ///         average fee paid (bps), |pool tick − reopen tick| at the end. Rows appended to docs/recordings/scenarios.csv
 ///         by `make test-scenarios`.

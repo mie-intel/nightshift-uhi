@@ -15,7 +15,7 @@ interface IVaultRegistry {
 
 /// @title VaultFactory
 /// @notice Anyone can become a curator: deploy a vault for the NightShift pool with a mandate; the vault is registered
-///         with the Controller so Reactive callbacks drive it (README §10.4, ADR-018).
+///         with the Controller so Reactive callbacks drive it (SPEC §10.4, ADR-018).
 contract VaultFactory {
     /// @notice v4 PoolManager.
     IPoolManager public immutable poolManager;

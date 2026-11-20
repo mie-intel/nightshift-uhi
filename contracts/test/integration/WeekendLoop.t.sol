@@ -22,7 +22,7 @@ import {NightShiftConfig} from "../../script/utils/NightShiftConfig.sol";
 import {Currency} from "@uniswap/v4-core/src/types/Currency.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-/// @title A full NightShift weekend, locally, with every real contract (README §21.2 integration test).
+/// @title A full NightShift weekend, locally, with every real contract (SPEC §21.2 integration test).
 /// @notice Fri close → Saturday news on two other chains → the pool is repriced with no trade on it → repair served,
 ///         away capped → Monday open window → reconciliation → OPEN. Reactive is simulated by the ReactiveHarness.
 contract WeekendLoopTest is HookFixture, ReactiveFixture {

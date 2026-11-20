@@ -18,14 +18,14 @@ import {RiskMath} from "../libraries/RiskMath.sol";
 import {PoolConfig, Regime, RiskParams} from "../libraries/Types.sol";
 
 /// @title NightShiftHook
-/// @notice Dynamic-fee hook for tokenized-stock pools while Wall Street sleeps (README §9, §13.1).
+/// @notice Dynamic-fee hook for tokenized-stock pools while Wall Street sleeps (SPEC §9, §13.1).
 ///         Toward-anchor (repair) swaps are served; away swaps pay risk-scaled fees and are size-capped.
 ///         Anchor/risk/regime are pushed by the Controller from Reactive callbacks, between trades.
 /// @dev Closed-market fee ideas adapted from Gapguard (Bytethebuilder, MIT) — see FeeMath.
 contract NightShiftHook is BaseOverrideFee, INightShiftHook {
     using StateLibrary for IPoolManager;
 
-    /// @notice Per-pool state (README §13.1, + `initialized`, + separate regime seq channel — ADR-017).
+    /// @notice Per-pool state (SPEC §13.1, + `initialized`, + separate regime seq channel — ADR-017).
     struct PoolState {
         int24 anchorTick;
         uint40 anchorUpdatedAt;
@@ -49,7 +49,7 @@ contract NightShiftHook is BaseOverrideFee, INightShiftHook {
     address public immutable owner;
     /// @notice Only address allowed to mutate pool state.
     address public controller;
-    /// @notice Local divergence full-scale (ticks) for `riskUsed = max(stored, local)` (README §8.3).
+    /// @notice Local divergence full-scale (ticks) for `riskUsed = max(stored, local)` (SPEC §8.3).
     uint24 public immutable divergenceFullTicks;
     /// @notice Local divergence weight (bps of risk) — same weight the Reactive risk score uses.
     uint16 public immutable divergenceWeight;
@@ -242,7 +242,7 @@ contract NightShiftHook is BaseOverrideFee, INightShiftHook {
 
     // ---------------------------------------------------------------- internal
 
-    /// @dev Fee for a swap now. Stale or never-set anchor → treat as away at max risk (README §9.4).
+    /// @dev Fee for a swap now. Stale or never-set anchor → treat as away at max risk (SPEC §9.4).
     function _quote(PoolId id, bool zeroForOne)
         internal
         view
@@ -258,14 +258,14 @@ contract NightShiftHook is BaseOverrideFee, INightShiftHook {
             riskUsed = MAX_RISK;
         } else {
             (away, absD) = FeeMath.direction(tick, s.anchorTick, zeroForOne, _config.deadbandTicks);
-            // a late callback can't make fees too cheap: local divergence is a floor (README §8.3)
+            // a late callback can't make fees too cheap: local divergence is a floor (SPEC §8.3)
             uint256 local = uint256(divergenceWeight) * RiskMath.component(absD, divergenceFullTicks) / 10_000;
             riskUsed = local > s.riskBps ? uint16(local) : s.riskBps;
         }
         fee = FeeMath.fee(_config, s.regime, away, absD, riskUsed);
     }
 
-    /// @dev Move caps (README §9.3) using the per-swap stash written in beforeSwap.
+    /// @dev Move caps (SPEC §9.3) using the per-swap stash written in beforeSwap.
     function _enforceMoveCaps(PoolId id, bool zeroForOne, int24 tickAfter)
         internal
         view

@@ -133,7 +133,7 @@ contract NightShiftReactiveTest is ReactiveFixture {
         assertEq(sys.queueLength(), 0);
     }
 
-    // ---------------------------------------------------------------- quorum (README §7.5)
+    // ---------------------------------------------------------------- quorum (SPEC §7.5)
 
     function test_singleChain_noQuorum_noCallback() public {
         _issuerAt(1.02e18); // weight 5 >= 4, but only one chain
@@ -176,7 +176,7 @@ contract NightShiftReactiveTest is ReactiveFixture {
         assertEq(rx.selfTick(), 5000);
     }
 
-    // ---------------------------------------------------------------- smoothing + caps (README §7.4)
+    // ---------------------------------------------------------------- smoothing + caps (SPEC §7.4)
 
     function test_influenceCap_clampsOutlier() public {
         _quorumAt(0);
@@ -206,7 +206,7 @@ contract NightShiftReactiveTest is ReactiveFixture {
         assertEq(rx.anchor(), before);
     }
 
-    // ---------------------------------------------------------------- debounce (README §7.6)
+    // ---------------------------------------------------------------- debounce (SPEC §7.6)
 
     function test_debounce_smallMove_noCallback_untilHeartbeat() public {
         _quorumAt(0);
@@ -239,7 +239,7 @@ contract NightShiftReactiveTest is ReactiveFixture {
         assertEq(rx.seq(), 4);
     }
 
-    // ---------------------------------------------------------------- risk (README §8)
+    // ---------------------------------------------------------------- risk (SPEC §8)
 
     function test_staleness_dropsQuorum_riskKeepsRising() public {
         _quorumAt(0);
@@ -273,7 +273,7 @@ contract NightShiftReactiveTest is ReactiveFixture {
         assertGe(rx.riskBps(), before + rp.weightDivergence - 1);
     }
 
-    // ---------------------------------------------------------------- regime on Cron (README §6.3, §7.7)
+    // ---------------------------------------------------------------- regime on Cron (SPEC §6.3, §7.7)
 
     function test_cron_fullCycle_close_reopen_reconcile() public {
         vm.warp(friOpen);
@@ -336,7 +336,7 @@ contract NightShiftReactiveTest is ReactiveFixture {
         assertEq(sys.queueLength(), q0, "no quorum -> nothing to send");
     }
 
-    // ---------------------------------------------------------------- gas (README §13.2: react < 900k)
+    // ---------------------------------------------------------------- gas (SPEC §13.2: react < 900k)
 
     function test_gas_maxSources_underReactiveCap() public {
         for (uint256 i = rx.sourceCount(); i < rx.MAX_SOURCES(); i++) {

@@ -4,7 +4,7 @@ pragma solidity ^0.8.26;
 import {Regime} from "./Types.sol";
 
 /// @title NyseCalendar
-/// @notice Rule-based NYSE regular-session calendar (README §6.2): US Eastern time with DST, weekends, full-day
+/// @notice Rule-based NYSE regular-session calendar (SPEC §6.2): US Eastern time with DST, weekends, full-day
 ///         holidays with weekend observance, and 13:00 ET early closes. Pure; used by NightShiftReactive (Cron) and
 ///         NightShiftController (`syncRegime` fallback).
 /// @dev Rules follow the published NYSE holiday rules; approach informed by Gapguard (Bytethebuilder, MIT) and

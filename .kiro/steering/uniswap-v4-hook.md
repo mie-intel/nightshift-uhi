@@ -3,7 +3,7 @@ inclusion: fileMatch
 fileMatchPattern: ["contracts/src/hook/**", "contracts/src/libraries/FeeMath.sol"]
 ---
 
-# NightShiftHook spec (README §9, §13.1)
+# NightShiftHook spec (SPEC §9, §13.1)
 
 ## Permissions & deployment
 - Hooks used: `afterInitialize`, `beforeAddLiquidity`, `beforeSwap`, `afterSwap`. **No return-delta flags.**

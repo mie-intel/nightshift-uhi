@@ -148,7 +148,7 @@ contract NightShiftControllerTest is Test {
         assertEq(ctrl.reopenPendingAt(POOL), 0);
     }
 
-    // ---------------------------------------------------------------- permissionless fallbacks (README §6.3)
+    // ---------------------------------------------------------------- permissionless fallbacks (SPEC §6.3)
 
     function test_syncRegime_closesWhenCalendarClosed() public {
         vm.warp(_utc(2026, 11, 21, 12)); // Saturday
@@ -189,6 +189,30 @@ contract NightShiftControllerTest is Test {
         ctrl.coverDebt();
         assertEq(address(proxy).balance, 0.1 ether);
         assertEq(proxy.owed(), 0);
+    }
+
+    function test_registry_and_withdraw_adminOnly() public {
+        vm.startPrank(makeAddr("rando"));
+        vm.expectRevert(NightShiftController.NotRegistrar.selector);
+        ctrl.setFactory(address(1));
+        vm.expectRevert(NightShiftController.NotRegistrar.selector);
+        ctrl.addVault(POOL, address(1));
+        vm.expectRevert(NightShiftController.NotRegistrar.selector);
+        ctrl.withdraw(payable(address(1)), 0);
+        vm.stopPrank();
+        ctrl.setFactory(address(this));
+        vm.expectRevert(NightShiftController.NotRegistrar.selector);
+        ctrl.setFactory(address(2)); // once
+        for (uint256 i; i < ctrl.MAX_VAULTS_PER_POOL(); i++) {
+            ctrl.addVault(POOL, address(uint160(100 + i)));
+        }
+        vm.expectRevert(NightShiftController.TooManyVaults.selector);
+        ctrl.addVault(POOL, address(1));
+        assertEq(ctrl.vaultsOf(POOL).length, 8);
+        vm.deal(address(ctrl), 1 ether);
+        address payable to = payable(makeAddr("to"));
+        ctrl.withdraw(to, 0.3 ether);
+        assertEq(to.balance, 0.3 ether);
     }
 
     function test_receivesFunding() public {

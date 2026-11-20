@@ -42,6 +42,7 @@ export const D = {
   swapRouter: dest.swapRouter as Address,
   siblingPoolId: ((dest as { siblingPoolId?: string }).siblingPoolId ?? "0x") as Hex,
   siblingFee: Number((dest as { siblingFee?: number }).siblingFee ?? 3000),
+  vaults: (((dest as { vaults?: string[] }).vaults ?? []) as Address[]),
   faucet: ((dest as { faucet?: string }).faucet ?? ZERO) as Address,
   invert: dest.invert as boolean,
   reactive: deployments.lasna.reactive as Address,

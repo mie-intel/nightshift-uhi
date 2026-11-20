@@ -3,7 +3,7 @@ inclusion: fileMatch
 fileMatchPattern: ["contracts/test/**"]
 ---
 
-# Testing strategy (README §21)
+# Testing strategy (SPEC §21)
 
 ## Rules
 - TDD: write the failing test first; make it pass; keep it. **Every bug fix gets a regression test.**

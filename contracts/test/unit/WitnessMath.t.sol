@@ -37,7 +37,7 @@ contract WitnessMathTest is Test {
         h = new WitnessMathHarness();
     }
 
-    // ---------- clamp (influence cap, README §7.4) ----------
+    // ---------- clamp (influence cap, SPEC §7.4) ----------
 
     function test_clamp() public view {
         assertEq(h.clamp(1000, 0, 300), 300);
@@ -55,7 +55,7 @@ contract WitnessMathTest is Test {
         else assertGe(r, x);
     }
 
-    // ---------- EWMA (README §7.4) ----------
+    // ---------- EWMA (SPEC §7.4) ----------
 
     function test_decay_points() public view {
         assertEq(h.decay(0, 300), 1e18);
@@ -90,7 +90,7 @@ contract WitnessMathTest is Test {
         assertGe(h.decay(a, 300), h.decay(b, 300));
     }
 
-    // ---------- freshness weight (README §7.5) ----------
+    // ---------- freshness weight (SPEC §7.5) ----------
 
     function test_freshWeight() public view {
         assertEq(h.fresh(5, 0, 600), 5 * WitnessMath.WEIGHT_SCALE);
@@ -100,7 +100,7 @@ contract WitnessMathTest is Test {
         assertEq(h.fresh(5, 0, 0), 0);
     }
 
-    // ---------- weighted median (README §7.5) ----------
+    // ---------- weighted median (SPEC §7.5) ----------
 
     function test_median_simple() public view {
         int24[] memory v = new int24[](3);

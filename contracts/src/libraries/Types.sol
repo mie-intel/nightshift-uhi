@@ -2,9 +2,9 @@
 pragma solidity ^0.8.26;
 
 /// @title NightShift shared types
-/// @notice The ONLY place shared enums/structs are declared (structure.md). README §6, §7.2, §8, §9.5, §10.2, §11.
+/// @notice The ONLY place shared enums/structs are declared (structure.md). SPEC §6, §7.2, §8, §9.5, §10.2, §11.
 
-/// @notice Market regime (README §6.1).
+/// @notice Market regime (SPEC §6.1).
 enum Regime {
     OPEN,
     CLOSED,
@@ -12,7 +12,7 @@ enum Regime {
     HALTED
 }
 
-/// @notice Witness source kind (README §7.1).
+/// @notice Witness source kind (SPEC §7.1).
 enum SourceKind {
     ISSUER_MINT,
     ISSUER_REDEEM,
@@ -22,7 +22,7 @@ enum SourceKind {
     SELF
 }
 
-/// @notice Per-pool fee policy parameters (README §9.5). Fees in pips (1e6 = 100%), shares in bps, distances in ticks.
+/// @notice Per-pool fee policy parameters (SPEC §9.5). Fees in pips (1e6 = 100%), shares in bps, distances in ticks.
 struct PoolConfig {
     uint24 baseOpen;
     uint24 baseClosed;
@@ -40,7 +40,7 @@ struct PoolConfig {
     uint32 anchorMaxAgeClosed; // seconds
 }
 
-/// @notice Gap Risk Score parameters (README §8.1). Weights in bps, must sum to 10 000.
+/// @notice Gap Risk Score parameters (SPEC §8.1). Weights in bps, must sum to 10 000.
 struct RiskParams {
     uint32 timeFullSeconds;
     uint24 dispersionFullTicks;
@@ -52,7 +52,7 @@ struct RiskParams {
     uint16 weightStaleness;
 }
 
-/// @notice Witness source configuration (README §7.2).
+/// @notice Witness source configuration (SPEC §7.2).
 struct WitnessSource {
     uint256 chainId;
     address emitter;
@@ -68,7 +68,7 @@ struct WitnessSource {
     bool enabled;
 }
 
-/// @notice Curator liquidity policy for one regime (README §10.2).
+/// @notice Curator liquidity policy for one regime (SPEC §10.2).
 struct RegimeMandate {
     uint16 followBps;
     uint24 coreHalfWidth;
@@ -79,7 +79,7 @@ struct RegimeMandate {
     uint16 exitRiskBps;
 }
 
-/// @notice Full curator mandate (README §10.2). `perfFeeBps` <= MAX_PERF_FEE (2 000).
+/// @notice Full curator mandate (SPEC §10.2). `perfFeeBps` <= MAX_PERF_FEE (2 000).
 struct Mandate {
     RegimeMandate open;
     RegimeMandate closed;
@@ -87,7 +87,7 @@ struct Mandate {
     uint16 perfFeeBps;
 }
 
-/// @notice One vault's reconciliation result for one epoch (README §11).
+/// @notice One vault's reconciliation result for one epoch (SPEC §11).
 struct EpochResult {
     address vault;
     bytes32 poolId;
@@ -99,7 +99,7 @@ struct EpochResult {
     bool degraded;
 }
 
-/// @notice Witness-quorum, debounce and reopen parameters for NightShiftReactive (README §7.4–§7.7).
+/// @notice Witness-quorum, debounce and reopen parameters for NightShiftReactive (SPEC §7.4–§7.7).
 struct QuorumParams {
     uint16 minQuorumWeight; // in whole weight units (scaled by WitnessMath.WEIGHT_SCALE internally)
     uint8 minDistinctChains;

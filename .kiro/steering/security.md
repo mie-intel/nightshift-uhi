@@ -3,7 +3,7 @@ inclusion: fileMatch
 fileMatchPattern: ["contracts/src/**"]
 ---
 
-# Security model & invariants (README §15)
+# Security model & invariants (SPEC §15)
 
 ## 🛑 ASK USER before: using private keys, any mainnet tx, spending real funds, contacting anyone.
 

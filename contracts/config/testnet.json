@@ -184,11 +184,31 @@
     "faucetStock": 10000000000000000000,
     "faucetUsd": 2000000000,
     "faucetCooldownSeconds": 21600,
-    "siblingFee": 3000
+    "siblingFee": 3000,
+    "vaults": {
+      "_note": "Demo curator vaults created by script 08 (deployer as curator); seed deposit per vault in raw units.",
+      "presets": [
+        "conservative",
+        "balanced",
+        "aggressive"
+      ],
+      "names": [
+        "Steady Night",
+        "Balanced Night",
+        "Night Owl"
+      ],
+      "symbols": [
+        "sNIGHT",
+        "bNIGHT",
+        "oNIGHT"
+      ],
+      "seedStock": 50000000000000000000,
+      "seedUsd": 5000000000
+    }
   },
   "funding": {
     "_note": "wei of native token: lREACT on Lasna, ETH on the destination chain (Base Sepolia)",
-    "reactiveWei": 1300000000000000000,
+    "reactiveWei": 800000000000000000,
     "controllerWei": 10000000000000000
   },
   "witness": {

@@ -5,7 +5,7 @@ import {DemoToken} from "./DemoToken.sol";
 
 /// @title DemoFaucet
 /// @notice Testnet-only: anyone can claim a fixed amount of demo dSTOCK + dUSD once per cooldown, so judges can try
-///         swaps from the dashboard. Requires MINTER rights on both tokens. Demo tokens only (README §4.4).
+///         swaps from the dashboard. Requires MINTER rights on both tokens. Demo tokens only (SPEC §4.4).
 contract DemoFaucet {
     /// @notice Demo stock token.
     DemoToken public immutable stock;

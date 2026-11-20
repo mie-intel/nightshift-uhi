@@ -4,7 +4,7 @@ pragma solidity ^0.8.26;
 import {Regime} from "../libraries/Types.sol";
 
 /// @title INightShiftVault
-/// @notice Controller-facing surface of a curator vault (README §10.3, §11).
+/// @notice Controller-facing surface of a curator vault (SPEC §10.3, §11).
 interface INightShiftVault {
     /// @notice Recenter liquidity on the witnessed fair price per the curator's mandate (onlyController).
     function rebalance(int24 anchorTick, uint16 riskBps, Regime regime) external;

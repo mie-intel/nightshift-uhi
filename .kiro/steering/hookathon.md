@@ -58,7 +58,7 @@ Cut / slides only: corporate actions (S7), `migrate`, mandate timelocks, multipl
 ## Video must cover
 The problem · how the hook works · how it compares to existing solutions (Gapguard, Maestro). ≤ 5 min, human voice.
 
-## Live recording schedule (README §23, times UTC; ET = UTC−5 after 1 Nov 2026) — optional under MVP
+## Live recording schedule (SPEC §23, times UTC; ET = UTC−5 after 1 Nov 2026) — optional under MVP
 | Window | Market | Record |
 | --- | --- | --- |
 | Wed 25 Nov 21:00 → Thu 26 Nov | **Thanksgiving closed** | Holiday regime |
@@ -73,7 +73,7 @@ Gapguard decides who gets paid when the market is closed; NightShift keeps the m
 ## Demo script outline (→ docs/demo-script.md)
 1. Problem in 30 s (HIMS case, stranded anchor). 2. Close transition `onRegime(CLOSED)` in Reactscan + dest explorer. 3. Witness move on another chain → `onAnchor` → vault recenters **with no destination trade**. 4. Repair swap served at fair price; away swap pays + capped. 5. Reopen → reconcile → alpha vs HODL. 6. Scenario comparison table. 7. Prior-art slide.
 
-## Credits that MUST appear (README §27)
+## Credits that MUST appear (SPEC §27)
 - **Gapguard** (Bytethebuilder, MIT) — closed-market fee ideas + calendar rules.
 - **Maestro** (UHI9) — Reactive-driven re-centering.
 - **horsefacts/trading-days** (MIT) — NYSE calendar reference.

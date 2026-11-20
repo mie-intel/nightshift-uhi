@@ -53,7 +53,7 @@ inclusion: manual
 - **Date:** 2026-11-18 · **Status:** Accepted (Gate 0.3/E)
 - **Context:** `AbstractCallback.onlyCallbackSender` only checks the injected first-arg == `_CALLBACK_SENDER`; it does NOT check `msg.sender`. `_CALLBACK_SENDER` is public, so a direct caller could spoof it. Docs say "use both, always."
 - **Decision:** Every Controller callback carries `onlyServiceProvider onlyCallbackSender(reactive_)`: proxy-is-caller AND injected identity. Constructor `AbstractCallback(callbackProxy, expectedReactive)`.
-- **Consequences:** Matches README §15 threat "forged callbacks". A test asserts a direct call (correct first arg, wrong msg.sender) reverts `NotAuthorized`.
+- **Consequences:** Matches SPEC §15 threat "forged callbacks". A test asserts a direct call (correct first arg, wrong msg.sender) reverts `NotAuthorized`.
 
 ## ADR-009 Single `onAnchor` loops vaults on the destination; `react()` ≤ 900k
 - **Date:** 2026-11-18 · **Status:** Accepted (Gate 0.6)
@@ -75,9 +75,9 @@ inclusion: manual
 
 ## ADR-012 Phase 3 library clarifications (fee units, ratchet scope, rounding)
 - **Date:** 2026-11-20 · **Status:** Accepted
-- **Context:** Writing `FeeMath`/`RiskMath` test-first exposed two spec gaps. (1) README §9.2 wrote the toward fee as `captureShare · |d| · 100`; with `captureShare` in bps that is 10 000× too large (200-tick gap → 6e7 pips). (2) §8.2 defined the ratchet only for `CLOSED`/`OPEN`, leaving `REOPEN_PENDING`/`HALTED` undefined.
+- **Context:** Writing `FeeMath`/`RiskMath` test-first exposed two spec gaps. (1) SPEC §9.2 wrote the toward fee as `captureShare · |d| · 100`; with `captureShare` in bps that is 10 000× too large (200-tick gap → 6e7 pips). (2) §8.2 defined the ratchet only for `CLOSED`/`OPEN`, leaving `REOPEN_PENDING`/`HALTED` undefined.
 - **Decision:** (1) Toward fee while CLOSED = `baseClosed + captureShare · absD / 100` pips (30% of a 200 bp gap = 6 000 pips = 60 bp, matching the README's own example). (2) Every non-OPEN regime ratchets (`max(prev, raw)`); only reconciliation resets risk to 0. (3) `PriceMath.tickFromRatio` floors like `TickMath`; exactly on a tick boundary it may return one tick lower (spec tolerance ±1). (4) Neutral (deadband) swaps pay the toward fee, so they are bound by the tighter `overshootCap`, not `maxAwayMove` — otherwise a neutral swap would be a cheap away swap. (5) Move caps and overshoot apply only outside OPEN.
-- **Consequences:** README §9.2 and §8.2 updated. Tests in `test/unit/{FeeMath,RiskMath,PriceMath}.t.sol` pin the behaviour.
+- **Consequences:** SPEC §9.2 and §8.2 updated. Tests in `test/unit/{FeeMath,RiskMath,PriceMath}.t.sol` pin the behaviour.
 
 ## ADR-013 MVP scope aligned to the Atrium rubric; tests-first
 - **Date:** 2026-11-20 · **Status:** Accepted
@@ -116,11 +116,22 @@ inclusion: manual
   1. **Cron1000 (~17 min), not Cron100.** One `react()` costs ~0.014 lREACT at 100 gwei; Cron100 (~720 ticks/day) ≈ 10 lREACT/day, Cron1000 ≈ 1 lREACT/day. Topic comes from `config.cron.topic0` (reactive constructor). Regime transitions may lag up to ~17 min; the destination `syncRegime` fallback covers it. Reactive gets an owner `withdraw` so funds aren't stranded on redeploy.
   2. **Two seq channels on the hook** (`lastSeq` anchor, `lastRegimeSeq` regime/reconcile). Reactive keeps one monotonic counter; callbacks are separate transactions and may land out of order, so a shared channel could drop a regime change as stale. Invariant 7 holds per channel.
   3. **Fallbacks don't consume seq:** `hook.forceRegime` (onlyController) used by `syncRegime` (calendar) and `forceReconcile` (timeout).
-  4. **`onReconcile` carries `seq`** (README §13.1 signature extended) and sets the regime to OPEN; reconcile resets the risk ratchet, then OPEN risk follows the raw score. Vault scoring attaches here in Phase 8.
+  4. **`onReconcile` carries `seq`** (SPEC §13.1 signature extended) and sets the regime to OPEN; reconcile resets the risk ratchet, then OPEN risk follows the raw score. Vault scoring attaches here in Phase 8.
   5. **Open price:** the anchor computed during the open window with issuer weight ×`issuerOpenBoost` (instead of a separate window buffer).
   6. **Decoders built:** ISSUER_MINT/REDEEM (quote/shares), V4_SWAP + SELF (post-swap tick). V3_SWAP/ORACLE/ISSUER_ACTION not wired. `minNotional` applies to issuer events only.
   7. **Influence cap is per print:** a +4% move reaches the anchor over a few prints (first print capped at `maxJumpTicks`), then the hook updates only when the move ≥ `minAnchorDeltaTicks`.
-  8. **Hook local-divergence floor:** `riskUsed = max(stored, weightDivergence·min(1, |d|/divergenceFull))` (README §8.3); hook constructor takes `RiskParams`.
+  8. **Hook local-divergence floor:** `riskUsed = max(stored, weightDivergence·min(1, |d|/divergenceFull))` (SPEC §8.3); hook constructor takes `RiskParams`.
   9. **Topology:** issuer (Ethereum Sepolia, w5) + sibling v4 pool B (Base Sepolia, plain pool, same pair, w2) + SELF → quorum spans 2 chains. Sibling A on Sepolia dropped (cost/time).
   10. **PriceMath precision fix:** ratios < 2^64 use `sqrt(q·2^192/b)`; fuzz found tick errors for tiny ratios via the X128 path (regression test added).
 - **Consequences:** 140 tests green incl. a full local weekend (`test/integration/WeekendLoop.t.sol`). `react()` at 16 sources ≈ 116k gas. Redeploy of destination + reactive required (new hook/pool/controller/faucet); MockIssuer on Sepolia reused.
+
+## ADR-018 Vault MVP, controller as registry, scenarios, submission README
+- **Date:** 2026-11-20 · **Status:** Accepted
+- **Context:** Theme-critical curation layer + judge-facing evidence with ~12 days left (ADR-013 scope).
+- **Decision:**
+  1. `NightShiftVault`: **one concentrated position + idle** per vault (no separate core/wide pair); mandate fixed at deployment (no timelocked `queueMandate`; no `migrate`) — curators still can't move funds or pick ticks. Close snapshot + reopen score vs HODL at the witnessed open tick (currency1 numeraire), performance fee only above HWM, `MAX_PERF_FEE = 2000`. Fees are collected with a zero-delta modify before snapshot/score.
+  2. **Controller is the vault registry** (no separate `CuratorRegistry`): `VaultFactory` registers vaults (`setFactory` once by the deploying admin), `MAX_VAULTS_PER_POOL = 8`, fan-out with try/catch (`VaultCallFailed`). Controller tracks `epochOf`. Leaderboard = dashboard view over vault state. Controller has an admin `withdraw` for callback funding.
+  3. Rebalance skip tolerates a one-`tickSpacing` width change from rounding (bug found by the skip test).
+  4. **Scenarios** (`test/scenarios/Scenarios.t.sol`): static 0.30% pool vs NightShift in one PoolManager, identical LP (±1200 ticks) and order flow; traders halve and retry when blocked; reopen arbitrage before measuring LP PnL vs HODL. S1/S2/S3/S5 → `docs/recordings/scenarios.csv`. S6 (manipulated sibling) is covered by reactive unit tests. Gapguard-style control pool not built.
+  5. **README.md = submission front page** (built integrations only, file links, honest scope); the full spec moved to `docs/SPEC.md` and references became "SPEC §N". Demo/video guide in `docs/demo-script.md`, form + progress-update texts in `docs/submission.md`.
+- **Consequences:** Redeploy of destination (hook/controller/vaults) + a new reactive contract required (controller is pinned in the hook; reactive pins the pool id).

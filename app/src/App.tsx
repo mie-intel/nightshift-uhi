@@ -12,6 +12,7 @@ import { Card, Skeleton } from "./components/ui";
 const WalletButton = lazy(() => import("./wallet/lazy").then((m) => ({ default: m.WalletButtonLazy })));
 const SwapPanel = lazy(() => import("./wallet/lazy").then((m) => ({ default: m.SwapPanelLazy })));
 const OwnerPanel = lazy(() => import("./wallet/lazy").then((m) => ({ default: m.OwnerPanelLazy })));
+const Vaults = lazy(() => import("./wallet/lazy").then((m) => ({ default: m.VaultsLazy })));
 
 export default function App() {
   return (
@@ -53,6 +54,10 @@ export default function App() {
             <HowItWorks />
           </div>
         </div>
+
+        <Suspense fallback={<Card><Skeleton className="h-48 w-full" /></Card>}>
+          <Vaults />
+        </Suspense>
 
         <Witnesses />
         <Activity />

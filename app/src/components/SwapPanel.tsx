@@ -174,7 +174,12 @@ export function SwapPanel() {
             {quote && (quote.away ? <Pill tone="bad">Away</Pill> : <Pill tone="good">Toward</Pill>)}
           </span>
         </div>
-        {quote?.away && <p className="text-muted">This trade moves the price away from fair value, so it costs more and big sizes are blocked while the market is closed.</p>}
+        {quote?.away && (
+          <p className="text-muted">
+            This trade moves the price away from fair value, so it costs more
+            {pool.data && pool.data.regime !== 0 ? " and big sizes are blocked while the market is closed." : "."}
+          </p>
+        )}
       </div>
 
       <Button onClick={action.onClick} disabled={action.disabled || !!busy} className="w-full py-3.5 text-lg">

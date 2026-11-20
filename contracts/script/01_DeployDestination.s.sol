@@ -125,6 +125,8 @@ contract DeployDestination is Script {
         vm.serializeInt(o, "initTick", c.initTick);
         vm.serializeAddress(o, "controller", address(0)); // set by 03
         vm.serializeAddress(o, "faucet", address(0)); // set by 06
+        vm.serializeAddress(o, "factory", address(0)); // set by 08
+        vm.serializeAddress(o, "vaults", new address[](0)); // set by 08
         vm.serializeUint(o, "siblingFee", c.siblingKey.fee);
         vm.serializeBytes32(o, "siblingPoolId", PoolId.unwrap(c.siblingKey.toId()));
         string memory out = vm.serializeBytes32(o, "poolId", PoolId.unwrap(c.key.toId()));

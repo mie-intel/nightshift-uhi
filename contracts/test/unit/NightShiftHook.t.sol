@@ -115,7 +115,7 @@ contract NightShiftHookTest is HookFixture {
         assertEq(r, 10_000);
     }
 
-    // ---------------------------------------------------------------- stale fallback (README §9.4)
+    // ---------------------------------------------------------------- stale fallback (SPEC §9.4)
 
     function test_noAnchor_maxProtection() public view {
         (uint24 f0, bool a0) = hook.quoteFee(key, true);
@@ -146,7 +146,7 @@ contract NightShiftHookTest is HookFixture {
         assertFalse(away, "fresh anchor -> neutral");
     }
 
-    // ---------------------------------------------------------------- fees (README §9.2)
+    // ---------------------------------------------------------------- fees (SPEC §9.2)
 
     /// @dev Pool at 0, anchor +200: buying token0 (tick up) repairs; selling pushes away.
     function test_closed_quotes_towardVsAway() public {
@@ -159,7 +159,7 @@ contract NightShiftHookTest is HookFixture {
         assertEq(aw, cfg.baseClosed + uint256(cfg.riskFeeMax) * 4000 / 10_000 + uint256(cfg.driftSlope) * 250);
     }
 
-    /// @dev README §8.3: a late callback (stored risk 0) can't make an away trade cheap — local divergence floors risk.
+    /// @dev SPEC §8.3: a late callback (stored risk 0) can't make an away trade cheap — local divergence floors risk.
     function test_localDivergence_floorsRisk() public {
         _setAnchor(300, 0); // |d| = 300 = full scale → local risk = weightDivergence
         (uint24 aw,) = hook.quoteFee(key, true);
@@ -183,7 +183,7 @@ contract NightShiftHookTest is HookFixture {
         assertEq(tw, cfg.baseOpen);
     }
 
-    // ---------------------------------------------------------------- swaps + move caps (README §9.3)
+    // ---------------------------------------------------------------- swaps + move caps (SPEC §9.3)
 
     function test_closed_bigRepairServed_upToAnchor() public {
         _setAnchor(2000, 0);

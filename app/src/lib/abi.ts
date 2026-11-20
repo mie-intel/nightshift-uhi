@@ -38,6 +38,25 @@ export const erc20Abi = parseAbi([
   "function approve(address spender, uint256 amount) returns (bool)",
 ]);
 
+export const vaultAbi = parseAbi([
+  "struct RegimeMandate { uint16 followBps; uint24 coreHalfWidth; uint24 wideHalfWidth; uint16 coreShareBps; uint16 riskWidenBps; uint24 recenterThreshold; uint16 exitRiskBps; }",
+  "struct Mandate { RegimeMandate open; RegimeMandate closed; RegimeMandate reopen; uint16 perfFeeBps; }",
+  "function name() view returns (string)",
+  "function curator() view returns (address)",
+  "function totalSupply() view returns (uint256)",
+  "function balanceOf(address) view returns (uint256)",
+  "function totals() view returns (uint256 t0, uint256 t1)",
+  "function liquidity() view returns (uint128)",
+  "function lower() view returns (int24)",
+  "function upper() view returns (int24)",
+  "function cumAlpha() view returns (int256)",
+  "function lastAlpha() view returns (int256)",
+  "function epochsPlayed() view returns (uint64)",
+  "function mandate() view returns (Mandate)",
+  "function deposit(uint256 amount0Max, uint256 amount1Max, uint256 minShares, address to) returns (uint256, uint256, uint256)",
+  "function withdraw(uint256 shares, uint256 amount0Min, uint256 amount1Min, address to) returns (uint256, uint256)",
+]);
+
 export const faucetAbi = parseAbi([
   "function claim()",
   "function nextClaimAt(address) view returns (uint256)",

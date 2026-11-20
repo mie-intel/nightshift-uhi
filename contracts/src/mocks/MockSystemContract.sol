@@ -4,7 +4,7 @@ pragma solidity ^0.8.29;
 import {ISystemContract} from "@reactive/interfaces/ISystemContract.sol";
 
 /// @title MockSystemContract
-/// @notice Local stand-in for Reactive's SYSTEM (0x8888…8888) used by the ReactiveHarness (README §21.2).
+/// @notice Local stand-in for Reactive's SYSTEM (0x8888…8888) used by the ReactiveHarness (SPEC §21.2).
 ///         Records subscriptions and queues requested callbacks; never deployed to a real network.
 contract MockSystemContract {
     /// @notice A recorded subscription.

@@ -33,7 +33,7 @@ contract RiskMathTest is Test {
 
     function setUp() public {
         h = new RiskMathHarness();
-        // README §8.1 defaults (= contracts/config/testnet.json "risk")
+        // SPEC §8.1 defaults (= contracts/config/testnet.json "risk")
         p = RiskParams({
             timeFullSeconds: 64 hours,
             dispersionFullTicks: 200,
