@@ -18,7 +18,7 @@
     "poolId": "0x40a1bf5ad017a6c437c8175c355ffac3387d0fc655ab06c6b8eb38695cdbee23",
     "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
     "swapRouter": "0x0809e4e6016eF2c587B1571DA6D193993F31bB60",
-    "faucet": "0x0000000000000000000000000000000000000000",
+    "faucet": "0x591cd3a2934aB7C5A8D8C8e1D87d057cAA46ea30",
     "deployBlock": 61327600
   },
   "lasna": {
