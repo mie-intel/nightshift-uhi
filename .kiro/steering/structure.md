@@ -30,7 +30,7 @@ nightshift/
 │   ├── script/            # 00_DeployTokens … 05_CreateCuratorVaults, ComputeOffsets
 │   └── test/{unit,fuzz,invariant,integration,scenarios}/
 ├── recorder/              # TS: event recorder, flow bot, report generator
-├── app/                   # Next.js dashboard
+├── app/                   # Vite + React dashboard (ADR-016)
 ├── deployments/{testnet,mainnet}.json
 └── docs/{architecture,demo-script,pitch}.md · docs/recordings/
 ```

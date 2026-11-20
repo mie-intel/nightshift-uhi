@@ -746,7 +746,7 @@ Compiler: our destination contracts `pragma solidity ^0.8.26;` with `evm_version
 | Node.js ≥ 20, pnpm                                                             | workspace                                                                       |
 | TypeScript, `viem`                                                             | recorder, flow bot, scripts                                                     |
 | `better-sqlite3` (or JSONL)                                                    | event store for recordings                                                      |
-| Next.js (App Router) + `wagmi` + `viem` + TanStack Query + Tailwind + Recharts | dashboard                                                                       |
+| Vite + React + `wagmi` + `viem` + TanStack Query + Tailwind (SVG charts) — ADR-016 | dashboard                                                                       |
 | GitHub Actions                                                                 | CI: `forge fmt --check`, `forge build`, `forge test`, `pnpm lint`, `pnpm build` |
 
 Pin exact versions in `package.json` / lockfile at install time; record them in `.kiro/steering/tech.md`.
@@ -809,7 +809,7 @@ nightshift/
 │       ├── integration/ # ReactiveHarness end-to-end (local)
 │       └── scenarios/   # S1–S8 replays + three-pool comparison
 ├── recorder/            # TS: event recorder, flow bot, report generator
-├── app/                 # Next.js dashboard
+├── app/                 # Vite + React dashboard
 ├── deployments/
 │   ├── testnet.json
 │   └── mainnet.json

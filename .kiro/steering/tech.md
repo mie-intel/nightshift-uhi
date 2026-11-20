@@ -20,7 +20,7 @@ inclusion: always
 | Slither | static analysis | TBD@Phase14 |
 | Node ≥20, pnpm, TypeScript, `viem` | recorder, flow bot, scripts | TBD@Phase12 |
 | `better-sqlite3` / JSONL | recording store | TBD@Phase12 |
-| Next.js (App Router) + wagmi + viem + TanStack Query + Tailwind + Recharts | dashboard | TBD@Phase13 |
+| Vite + React + TS + wagmi + viem + TanStack Query + Tailwind v4 (SVG charts, no Recharts) | dashboard (`app/`, ADR-016) | pinned in `app/package.json` |
 
 - **v4-core/v4-periphery are NOT installed top-level** — we use the exact copies uniswap-hooks v1.2.1 bundles, so hook-base types match ours. `remappings.txt` points `@uniswap/v4-core/` → `lib/uniswap-hooks/lib/v4-core/`. (Top-level v4-core@v4.0.0 lacked `types/PoolOperation.sol` → removed.) CI checkout must be `submodules: recursive`.
 - **solc is auto-detected per pragma** (no pin in default profile): destination `^0.8.26` and reactive `^0.8.29` compile in one run; observed solc 0.8.35 for the 0.8.29 unit. Versions locked in `contracts/foundry.lock`.
