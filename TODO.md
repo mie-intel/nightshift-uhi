@@ -197,13 +197,13 @@ Output: `docs/verification.md` with one section per item: question, evidence (li
 
 ## Phase 3 — Core libraries (minimum for the skeleton)
 
-- [ ] `Types.sol`: `Regime`, `SourceKind`, `PoolConfig`, `RegimeMandate`, `Mandate`, `WitnessSource`, `EpochResult`.
-- [ ] `PriceMath.sol` + tests (ratio→tick round trip within 1 tick; inversion; decimals).
-- [ ] `WitnessMath.sol` + tests (weighted median vs brute force fuzz; EWMA bounds; clamp).
-- [ ] `NyseCalendar.sol` + tests (all 2026–2027 holidays/early closes/DST; Thanksgiving 26 Nov 2026 closed; 27 Nov 2026 closes 18:00 UTC). Credit Gapguard/trading-days in NatSpec header.
-- [ ] `RiskMath.sol` + tests (ratchet monotonic fuzz).
-- [ ] `FeeMath.sol` + tests (direction table; caps; split-swap never cheaper fuzz).
-- **Done when:** all library tests green; coverage of libraries ≥ 90% lines.
+- [x] `Types.sol`: `Regime`, `SourceKind`, `PoolConfig`, `RegimeMandate`, `Mandate`, `WitnessSource`, `EpochResult`.
+- [x] `PriceMath.sol` + tests (ratio→tick round trip within 1 tick; inversion; decimals).
+- [x] `WitnessMath.sol` + tests (weighted median vs brute force fuzz; EWMA bounds; clamp).
+- [x] `NyseCalendar.sol` + tests (all 2026–2027 holidays/early closes/DST; Thanksgiving 26 Nov 2026 closed; 27 Nov 2026 closes 18:00 UTC). Credit Gapguard/trading-days in NatSpec header.
+- [x] `RiskMath.sol` + tests (ratchet monotonic fuzz).
+- [x] `FeeMath.sol` + tests (direction table; caps; split-swap never cheaper fuzz).
+- **Done when:** all library tests green; coverage of libraries ≥ 90% lines. ✅ 20 Nov: 72 tests green, libraries 99.45% lines. `NyseCalendar.nextTransition` deferred (dashboard-only, ADR-013).
 
 ---
 
