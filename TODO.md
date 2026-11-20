@@ -211,11 +211,11 @@ Output: `docs/verification.md` with one section per item: question, evidence (li
 
 Smallest end-to-end loop on real testnets, before building full features.
 
-- [ ] `DemoToken`, `MockIssuer` (README §13.3).
-- [ ] `NightShiftHook` v0: permissions, dynamic fee required, `setState` (onlyController), fee = `baseClosed` + simple away surcharge; emits `SwapObserved`.
-- [ ] `NightShiftController` v0: authenticated `onAnchor` → `hook.setState`; `seq` check.
-- [ ] `NightShiftReactive` v0: subscribe to `MockIssuer.Minted` on Ethereum Sepolia; on event compute tick (PriceMath), request `onAnchor` callback to Unichain Sepolia.
-- [ ] Scripts 00–03 minimal; `deployments/testnet.json` written by scripts.
+- [x] `DemoToken`, `MockIssuer` (README §13.3).
+- [x] `NightShiftHook` v0: permissions, dynamic fee required, `setState` (onlyController), fee = `baseClosed` + simple away surcharge; emits `SwapObserved`.
+- [x] `NightShiftController` v0: authenticated `onAnchor` → `hook.setState`; `seq` check.
+- [x] `NightShiftReactive` v0: subscribe to `MockIssuer.Minted` on Ethereum Sepolia; on event compute tick (PriceMath), request `onAnchor` callback to Unichain Sepolia.
+- [x] Scripts 00–03 minimal; `deployments/testnet.json` written by scripts. (Done as 00–05 + Makefile targets; 00/01 fork-simulated OK. Local Gate 1 loop green: `test/integration/GateOneLoop.t.sol`, ADR-014.)
 - [ ] 🛑 ASK USER for `.env` with testnet keys/RPCs and to fund the deployer (SepETH, Base Sepolia ETH, Unichain Sepolia ETH); then run `make fund-reactive`.
 - [ ] Deploy; trigger `MockIssuer.mint` at a new price; observe reactive tx on Lasna and callback tx on Unichain Sepolia; `AnchorUpdated` emitted.
 - [ ] Record the four links in `docs/recordings/e2e.md`.

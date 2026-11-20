@@ -84,3 +84,15 @@ inclusion: manual
 - **Context:** Atrium rubric (guideline.pdf): Original Idea 30%, Unique Execution 25%, Impact 20%, Functionality 15%, Presentation 10%. Testnet deployment and frontend not mandatory; tests OR frontend required. 13 days left with no contract code.
 - **Decision:** Tests-first, no dashboard unless the core is done by ~29 Nov. Must-have: Gate 1, hook, reactive (≥2 witness chains, quorum, Cron regime), one vault (recenter + reconcile vs HODL + HWM), scenarios S2/S3/S5/S6 vs static pool, one recorded live loop. Cut to slides: corporate actions (S7), `migrate`, mandate timelocks, multiple presets, leaderboard UI. See hookathon.md.
 - **Consequences:** TODO phases 9 (corporate actions), 13 (dashboard) and parts of 7/10/12 become stretch. Submission README must list only built integrations.
+
+## ADR-014 Phase 4 walking-skeleton build decisions
+- **Date:** 2026-11-20 · **Status:** Accepted
+- **Context:** Building hook/controller/reactive v0 against the installed libraries surfaced compiler and wiring constraints.
+- **Decision:**
+  1. `NightShiftController` uses `pragma ^0.8.29` (reactive-lib-omni `AbstractCallback` requires it); other destination contracts stay `^0.8.26`.
+  2. v4-core `PoolManager.sol` pins `pragma 0.8.26` exactly, so no file can import both it and reactive-lib. Tests deploy PoolManager from its artifact (`deployCode`); `test/utils/V4Artifacts.sol` (0.8.26) only forces the artifact build. The reactive build skips that file (`REACTIVE_SKIP` in Makefile). `foundry.toml` fs_permissions now include read `./out`.
+  3. Deploy order breaks the address cycle: hook (CREATE2, mined) → reactive (Lasna) → controller pinned to (callback proxy, reactive, hook) → `hook.initController` (one-shot, by an explicit `owner` because CREATE2 makes the factory `msg.sender`) → `reactive.setController` + `subscribe()` (owner calls after deploy, not in the constructor).
+  4. `NightShiftReactive` v0 = one issuer witness, no quorum; Phase 6 replaces it with the Witness Quorum. Hook v0 already runs the full FeeMath path (direction, fees, caps, stale fallback); `curatedOnly`/registry and local-divergence `riskUsed` land in Phase 5/7.
+  5. Hook adds `initialized` to `PoolState` so callbacks for unknown pools revert (`UnknownPool`); `seq` is shared across `setState`/`setRegime` per pool (invariant 7).
+  6. Chain addresses, demo prices and funding amounts live in `config/testnet.json` (`chains`, `demo`, `funding`); deploy outputs in `deployments/testnet.json`.
+- **Consequences:** Scripts 00–05 fork-simulated OK against Sepolia + Unichain Sepolia (hook mined, pool initialized, liquidity seeded). Lasna steps (02/04) untested until the real deploy; `LASNA_FLAGS` lets us add e.g. `--legacy` without code changes.

@@ -28,7 +28,7 @@ inclusion: always
 
 ## Compiler settings (README §16.1)
 
-- **Destination contracts** (hook, controller, vault, registry, libraries, mocks): `pragma solidity ^0.8.26;`, `evm_version = "cancun"` (transient storage required). `[profile.default]`.
+- **Destination contracts** (hook, vault, registry, libraries, mocks): `pragma solidity ^0.8.26;` — **Controller `^0.8.29`** (AbstractCallback, ADR-014); `evm_version = "cancun"` (transient storage required). `[profile.default]`. v4 `PoolManager` pins `0.8.26` → tests deploy it from its artifact (ADR-014).
 - **Reactive contract** (`NightShiftReactive`): `pragma solidity ^0.8.29;`, own `[profile.reactive]`, `evm_version = "cancun"` (G0.4 — Cancun-era confirmed; **verify by real Lasna deploy in Phase 4**; fallback `paris`/`shanghai` + no tstore in `react()`).
 - Let Foundry auto-detect solc for deps. `fuzz runs 256`, `invariant runs 64`. `via_ir` only if needed.
 
