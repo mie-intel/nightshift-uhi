@@ -47,7 +47,7 @@ Reproduce: `make news PRICE=104000000`.
 
 ---
 
-# v2 — vaults move with the fair price, no trade (20 Nov 2026, live) ← current deployment
+# v2 — vaults move with the fair price, no trade (20 Nov 2026, live)
 
 Same quorum (issuer on Ethereum Sepolia + sibling pool on Base Sepolia). One `onAnchor` callback now also re-centers
 every registered curator vault (Controller fan-out, ADR-018).
@@ -62,3 +62,20 @@ every registered curator vault (Controller fan-out, ADR-018).
 Result: pool fair price $104.00 (anchor tick 229878); the three vaults deployed liquidity around it with no trade on
 the pool — Steady Night [229440, 230700], Balanced Night [229560, 230400], Night Owl [229620, 230100] (wider → narrower
 by mandate; OPEN follow 50% / 70% / 100%). Landed ~5 s after the trades.
+
+---
+
+# v3 — redeploy with vault, epoch and away-cap fixes (23 Nov 2026, live) ← current deployment
+
+Same MockIssuer on Ethereum Sepolia; new hook, pool, controller, vaults and reactive contract (ADR-019).
+
+| # | Step | Chain | Tx | Block time (unix) |
+|---|---|---|---|---|
+| 1 | Issuer mints at $104 (`Minted`) | Ethereum Sepolia | [0x52e7a020…](https://sepolia.etherscan.io/tx/0x52e7a02010c3375d842f21f2798b5232ff5cd6a54165b04b3a8ce5f83a96bd7f) | 1795447596 |
+| 2 | Sibling pool trades to $104 (`Swap`) → 2nd chain completes the quorum | Base Sepolia | [0xd13fbe55…](https://sepolia.basescan.org/tx/0xd13fbe559de2e5d4b2098dce10752cd7c1556ef63271e4537656acdacd2dc1f6) | 1795447609 |
+| 3 | `react()` → quorum → `onAnchor` seq 1 | Lasna | [0xd55f9f12…](https://lasna.reactscan.net/tx/0xd55f9f12d09df628dad136dd6914fe1d28062b6745f8ab6f1e00b07aefa31c13) | 1795447609 |
+| 4 | Controller → `hook.setState` + 3× `vault.rebalance` (one tx) | Base Sepolia | [0xe0e28a67…](https://sepolia.basescan.org/tx/0xe0e28a679550f6334fdf8e937aabbec76452298d71129726e8d482c8eeeb522c) | 1795447610 |
+
+Result: pool fair price $104.00 (anchor tick −229878; token order differs from v2, so ticks are negative). The three
+vaults deployed liquidity around it with no trade on the pool — Steady Night [−230700, −229440], Balanced Night
+[−230400, −229560], Night Owl [−230100, −229620]. Callback landed 1 s after the quorum-completing swap.

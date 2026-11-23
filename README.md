@@ -59,7 +59,7 @@ stash), vaults in [`contracts/src/vault/`](contracts/src/vault/), pure math in
 ```bash
 git clone --recursive https://github.com/mie-intel/nightshift-uhi && cd nightshift-uhi
 make install && make build
-make test            # 163 unit, fuzz and integration tests (incl. a full simulated weekend)
+make test            # 170 unit, fuzz and integration tests (incl. a full simulated weekend)
 make test-scenarios  # static 0.30% pool vs NightShift → docs/recordings/scenarios.csv
 make app             # dashboard (Vite + React) → http://localhost:5173 — live testnet state, swaps, vaults
 ```
@@ -146,7 +146,7 @@ Sibling v4 Swap ───┘        risk ratchet · Cron1000 regime ────
 - **Fallbacks:** anyone can call `syncRegime` (NYSE calendar on the destination chain) or `forceReconcile` (after a
   timeout) if Reactive is late; the hook treats a stale anchor as maximum risk.
 - **Fees** (pips): toward = base + 30% of the gap; away = base + risk-scaled + drift at the midpoint of a full step
-  (splitting a trade is never cheaper); all capped at 5% (hard cap 10%). Away moves capped at 100 ticks, shrinking with
+  (splitting a trade is never cheaper); all capped at 5% (hard cap 10%). Away moves capped at 100 ticks per block, shrinking with
   risk; toward trades may overshoot the anchor by at most 20 ticks.
 - **Vaults:** in-kind pro-rata deposits/withdrawals (no price needed, no stale-NAV games), never swap; curators can't
   move funds or pick ticks; performance fee ≤ 20%, only above the high-water mark.
@@ -161,17 +161,17 @@ Sibling v4 Swap ───┘        risk ratchet · Cron1000 regime ────
 
 | Contract | Chain | Address |
 |---|---|---|
-| NightShiftHook (v4 hook) | Base Sepolia | [`0xc7eF4D7cE20D9F106800ad65ac424EA1709598c0`](https://sepolia.basescan.org/address/0xc7eF4D7cE20D9F106800ad65ac424EA1709598c0) |
-| NightShiftController (callback receiver + vault registry) | Base Sepolia | [`0x76caeD2d2Aa4A163D966c5A6C238B955Bb5C6ee3`](https://sepolia.basescan.org/address/0x76caeD2d2Aa4A163D966c5A6C238B955Bb5C6ee3) |
-| VaultFactory | Base Sepolia | [`0x169Bec0CBBEf118496A57cd0D50AfceC1B2EE7c7`](https://sepolia.basescan.org/address/0x169Bec0CBBEf118496A57cd0D50AfceC1B2EE7c7) |
-| Vault · Steady Night (conservative) | Base Sepolia | [`0x3a13230DF8ED553b48a0917385BcE5d10B1b4943`](https://sepolia.basescan.org/address/0x3a13230DF8ED553b48a0917385BcE5d10B1b4943) |
-| Vault · Balanced Night | Base Sepolia | [`0x1Dc82FADaBF8099589034de736611bF3f9BEE80A`](https://sepolia.basescan.org/address/0x1Dc82FADaBF8099589034de736611bF3f9BEE80A) |
-| Vault · Night Owl (aggressive) | Base Sepolia | [`0x85d9551c08ca63C22D33e9a64908054DFFD69C36`](https://sepolia.basescan.org/address/0x85d9551c08ca63C22D33e9a64908054DFFD69C36) |
-| DemoFaucet | Base Sepolia | [`0xe1AeC464Cd81e0C536ce44e76f2b72488f63517A`](https://sepolia.basescan.org/address/0xe1AeC464Cd81e0C536ce44e76f2b72488f63517A) |
-| NightShiftReactive | Reactive Lasna | [`0x31D25888752Ad6f4192469F88657572e93690757`](https://lasna.reactscan.net/address/0x31D25888752Ad6f4192469F88657572e93690757) |
+| NightShiftHook (v4 hook) | Base Sepolia | [`0x78FEE4Cb1Ab46B04fBCaee3f77EC13178e2998C0`](https://sepolia.basescan.org/address/0x78FEE4Cb1Ab46B04fBCaee3f77EC13178e2998C0) |
+| NightShiftController (callback receiver + vault registry) | Base Sepolia | [`0x6a9e1b5258aB0ca49028a893a149A44e5597C3D5`](https://sepolia.basescan.org/address/0x6a9e1b5258aB0ca49028a893a149A44e5597C3D5) |
+| VaultFactory | Base Sepolia | [`0x68b00bF9D37195759bcAFC5990545dCe3c404193`](https://sepolia.basescan.org/address/0x68b00bF9D37195759bcAFC5990545dCe3c404193) |
+| Vault · Steady Night (conservative) | Base Sepolia | [`0xD77C1c29405fEE4954192E69e6D08918A316620D`](https://sepolia.basescan.org/address/0xD77C1c29405fEE4954192E69e6D08918A316620D) |
+| Vault · Balanced Night | Base Sepolia | [`0x866E6b84C55801461B63cdd83Fb0c4AF9945d0E5`](https://sepolia.basescan.org/address/0x866E6b84C55801461B63cdd83Fb0c4AF9945d0E5) |
+| Vault · Night Owl (aggressive) | Base Sepolia | [`0xdC721A09BE20610Aa9aB23C01019833152f666fb`](https://sepolia.basescan.org/address/0xdC721A09BE20610Aa9aB23C01019833152f666fb) |
+| DemoFaucet | Base Sepolia | [`0xc3E24C6CC9cf6f7102b58C798F96b93e7c743dD6`](https://sepolia.basescan.org/address/0xc3E24C6CC9cf6f7102b58C798F96b93e7c743dD6) |
+| NightShiftReactive | Reactive Lasna | [`0x78bf302762a31839A3357283b56b0a150103f5D8`](https://lasna.reactscan.net/address/0x78bf302762a31839A3357283b56b0a150103f5D8) |
 | MockIssuer (issuer witness) | Ethereum Sepolia | [`0x83Ec94D9fc79a41DF16652d4F359930D1dF22B58`](https://sepolia.etherscan.io/address/0x83Ec94D9fc79a41DF16652d4F359930D1dF22B58) |
 
-Pool id: `0x97412ae5ed6642c278a223a77017b0cf5e2e60facc3ef230716aa785276f5529` · sibling pool id: `0x2c14278f267ef1584c04caec5d367ae0e37f80ece34ca34a8306492d2ea79b2c`.
+Pool id: `0x1ada978597437ff76c2176b2f288e3d9b555ce303491ce33af19bb856f25a32a` · sibling pool id: `0xf916e0e61222b4cc4d1f3dbd0eb6fc0fde9154d7d5a816c98e86db2c894c1ba2`.
 
 All addresses: [`deployments/testnet.json`](deployments/testnet.json). Contracts are verified on Etherscan / Basescan
 and on Sourcify (Lasna).
