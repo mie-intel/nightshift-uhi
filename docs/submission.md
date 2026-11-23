@@ -49,9 +49,10 @@ Progress Updates 1 & 2: links on the Atrium *Hookathon Guidelines & Process* pag
 
 > **Done since update 1:** curator vaults + factory (re-center on every Reactive update with no trade, close snapshot,
 > reopen score vs HODL, performance fee above HWM), controller fan-out with try/catch, Cron-driven regime with calendar
-> and timeout fallbacks, scenario suite vs a static 0.30% pool (LPs lose 44% less on news weekends, premium halved and
-> LP PnL ~2× on one-way local flow, max protection on witness outage), dashboard with witness table, update timeline,
-> vault leaderboard and deposits. 160+ tests. **Remaining:** recording the weekend live loop and the demo video.
+> and timeout fallbacks, scenario suite vs a static 0.30% pool and a Gapguard-style pool (both beat static for LPs; Gapguard-style
+> LPs earn 2–5 bps more in S1–S3, NightShift charges traders ~31% less on quiet and news weekends and halves the premium
+> on witness outage), dashboard with witness table, update timeline,
+> vault leaderboard and deposits. 175 tests. **Remaining:** recording the weekend live loop and the demo video.
 
 ## Before you submit (checklist)
 

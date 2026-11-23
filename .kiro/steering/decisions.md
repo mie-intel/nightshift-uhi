@@ -144,3 +144,9 @@ inclusion: manual
   2. Controller starts an epoch on `onRegime(CLOSED)` only if the pool was not already CLOSED.
   3. Hook keeps the per-swap cap and adds the same cap on net movement since the block's first swap, in the swap's direction. Stored in regular storage (transient storage would reset per transaction).
 - **Consequences:** The cap limits movement per block, not per weekend: a patient trader can still move the price across blocks, paying the rising away fee each time. After a repair that crosses the anchor, an away swap in the same block can be rejected until the next block (conservative). Scenario traders now land in separate blocks; scenario results are unchanged. Live contracts keep the old behavior until the redeploy.
+
+## ADR-020 Gapguard-style scenario baseline; results reported as a trade-off
+- **Date:** 2026-11-23 · **Status:** Accepted
+- **Context:** Scenarios only compared against a static pool, while Gapguard is the closest prior art.
+- **Decision:** Add `ControlClosedSurchargeHook` (test/scenario use, not deployed) with the fee values from Gapguard's deploy script. Its anchor stays at the initial tick because scenarios run inside one closed period. Its 15% skim is not modeled, which favors its LPs. `scenarios.csv` is written only by `make test-scenarios` and sorted, so plain `forge test` no longer appends rows.
+- **Consequences:** Gapguard-style LPs earn 2–5 bps more than NightShift in S1–S3; NightShift charges traders ~31% less in S1–S2 and halves the premium in S5. README and pitch state this trade-off and do not claim NightShift beats Gapguard on LP PnL. Scripted flow does not react to fees and the table excludes vault re-centering, so neither design's full behavior is measured.

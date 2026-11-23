@@ -76,6 +76,7 @@ Gapguard decides who gets paid when the market is closed; NightShift keeps the m
 ## Credits that MUST appear (SPEC §27)
 - **Gapguard** (Bytethebuilder, MIT) — closed-market fee ideas + calendar rules.
 - **Maestro** (UHI9) — Reactive-driven re-centering.
+- **Veritas** (UHI9) — idea of a Reactive-fed risk score that only ratchets up and feeds the swap fee.
 - **horsefacts/trading-days** (MIT) — NYSE calendar reference.
 
 ## Sponsor status

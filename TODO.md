@@ -280,7 +280,7 @@ Smallest end-to-end loop on real testnets, before building full features.
 
 ## Phase 10 — Scenarios and comparison (SPEC §21.3)
 
-- [ ] `ControlClosedSurchargeHook` (Gapguard-style, credited) + static control pool setup helper.
+- [x] `ControlClosedSurchargeHook` (Gapguard-style, credited) + static control pool setup helper. (ADR-020)
 - [ ] Scenario tests S1–S8, each against static / Gapguard-style / NightShift with identical liquidity and flows.
 - [ ] Metrics writer → `docs/recordings/scenarios.csv` (+ JSON) via `make test-scenarios`.
 - [ ] Tune default parameters until NightShift meets the expectations column; record final values + reasoning in an ADR.
@@ -290,7 +290,7 @@ Smallest end-to-end loop on real testnets, before building full features.
 
 ## Phase 11 — Testnet full deployment and live recording
 
-- [ ] Redeploy full system on testnet topology (SPEC §18.5); verify contracts on explorers.
+- [x] Redeploy full system on testnet topology (SPEC §18.5); verify contracts on explorers. (v3, 23 Nov, ADR-019)
 - [ ] Seed liquidity in main pool, control pools and sibling pools; create 3 curator vaults; deposit from 2–3 test wallets.
 - [ ] Recorder running across all chains (Phase 12) before the first window.
 - [ ] Live windows (SPEC §23): Thanksgiving (26 Nov), Black Friday early close (27 Nov 18:00 UTC), weekend 27–30 Nov, reconcile at Mon 30 Nov 14:30–14:45 UTC.

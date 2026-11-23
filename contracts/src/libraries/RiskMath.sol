@@ -5,6 +5,7 @@ import {Regime, RiskParams} from "./Types.sol";
 
 /// @title RiskMath
 /// @notice Gap Risk Score components and the closed-market ratchet (SPEC §8).
+/// @dev The idea of a Reactive-fed risk score that only ratchets up and feeds the swap fee is credited to Veritas (UHI9).
 library RiskMath {
     uint256 private constant BPS = 10_000;
 

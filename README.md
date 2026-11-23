@@ -2,7 +2,7 @@
 
 **Fair prices for tokenized stocks, even when Wall Street sleeps.**
 A Uniswap v4 hook + curator vaults, driven by a Reactive Network contract that brings the fair price in from other
-chains — between trades, with no bot and no trusted signer.
+chains — between trades, with no off-chain bot or signer relaying the price.
 
 UHI11 Hookathon · theme **Active Management & Curated Liquidity** · partner integration: **Reactive Network**
 
@@ -59,8 +59,8 @@ stash), vaults in [`contracts/src/vault/`](contracts/src/vault/), pure math in
 ```bash
 git clone --recursive https://github.com/mie-intel/nightshift-uhi && cd nightshift-uhi
 make install && make build
-make test            # 170 unit, fuzz and integration tests (incl. a full simulated weekend)
-make test-scenarios  # static 0.30% pool vs NightShift → docs/recordings/scenarios.csv
+make test            # 175 unit, fuzz and integration tests (incl. a full simulated weekend)
+make test-scenarios  # static 0.30% pool vs Gapguard-style pool vs NightShift → docs/recordings/scenarios.csv
 make app             # dashboard (Vite + React) → http://localhost:5173 — live testnet state, swaps, vaults
 ```
 
@@ -71,6 +71,7 @@ testnet key in `.env`, never committed). Full deploy: `make deploy-testnet`.
 
 - **Gapguard** (Bytethebuilder, MIT) — closed-market fee ideas (away pricing at the midpoint of a full step).
 - **Maestro** (UHI9) — Reactive-driven re-centering.
+- **Veritas** (UHI9) — idea of a Reactive-fed risk score that only ratchets up and feeds the swap fee.
 - **horsefacts/trading-days** (MIT) — NYSE calendar reference (our calendar is rewritten from the published NYSE rules).
 - OpenZeppelin uniswap-hooks, Uniswap v4-core/periphery, Reactive `reactive-lib-omni`.
 
@@ -81,9 +82,10 @@ testnet key in `.env`, never committed). Full deploy: `make deploy-testnet`.
 <details>
 <summary><b>Why Reactive is essential</b></summary>
 
-The pool needs state from two other chains, delivered between trades, with no trusted
-operator. Without Reactive this would be one bot per chain plus an aggregator plus a signer — exactly the trust we
-remove. With Reactive, the cross-chain subscription, the quorum math and the callback all run on-chain.
+The pool needs witness state from more than one chain, delivered between trades, with no off-chain relayer. Without
+Reactive this would be one bot per chain plus an aggregator plus a signer. With Reactive, the cross-chain subscription,
+the quorum math and the callback all run on-chain. In this testnet demo the witnesses themselves are not independent:
+the deployer runs `MockIssuer` and trades the sibling pool, which sits on the destination chain.
 
 </details>
 
@@ -97,8 +99,8 @@ remove. With Reactive, the cross-chain subscription, the quorum math and the cal
 
    ```bash
    git clone --recursive https://github.com/mie-intel/nightshift-uhi && cd nightshift-uhi
-   make test            # 160+ unit, fuzz and integration tests
-   make test-scenarios  # static pool vs NightShift → docs/recordings/scenarios.csv
+   make test            # 175 unit, fuzz and integration tests
+   make test-scenarios  # static vs Gapguard-style vs NightShift → docs/recordings/scenarios.csv
    ```
 
 3. `contracts/test/integration/WeekendLoop.t.sol` replays a whole weekend with every real contract (Reactive simulated
@@ -108,25 +110,33 @@ remove. With Reactive, the cross-chain subscription, the quorum math and the cal
 </details>
 
 <details>
-<summary><b>Results — static 0.30% pool vs NightShift (same liquidity, same order flow)</b></summary>
+<summary><b>Results — static 0.30% pool vs Gapguard-style pool vs NightShift (same liquidity, same order flow)</b></summary>
 
 From `make test-scenarios` (market closed all weekend; LP position ±12% around the start price; LP PnL measured vs
-HODL at the reopen price after reopen arbitrage, fees included):
+HODL at the reopen price after reopen arbitrage, fees included). The Gapguard-style pool uses the fee values from
+Gapguard's deploy script; its 15% hook skim is not modeled, so its LPs keep the whole surcharge. Order flow is scripted
+and does not react to fees, and LPs hold a fixed position (vault re-centering is not part of this table):
 
 | Scenario | Pool | Trades filled / blocked | LP PnL vs HODL | Avg fee | Worst premium vs fair |
 |---|---|---|---|---|---|
 | S1 quiet weekend | static | 11 / 0 | +3 bps | 0.30% | 15 ticks |
+| | Gapguard-style | 11 / 0 | +6 bps | 0.50% | 15 ticks |
 | | **NightShift** | 11 / 0 | +4 bps | 0.34% | 15 ticks |
 | S2 news +4% on other chains | static | 15 / 0 | **−25 bps** | 0.30% | 342 ticks |
+| | Gapguard-style | 15 / 0 | −9 bps | 0.96% | 342 ticks |
 | | **NightShift** | 15 / 0 | **−14 bps** | 0.66% | 342 ticks |
 | S3 one-way local buying, fair price flat | static | 12 / 0 | +31 bps | 0.30% | **1800 ticks (+19.7%)** |
+| | Gapguard-style | 12 / 12 | +68 bps | 1.42% | 900 ticks (+9.4%) |
 | | **NightShift** | 12 / 14 | **+65 bps** | 1.38% | **843 ticks (+8.8%)** |
 | S5 witness outage | static | 10 / 0 | +10 bps | 0.30% | 160 ticks |
+| | Gapguard-style | 10 / 0 | +19 bps | 0.59% | 160 ticks |
 | | **NightShift** | 10 / 10 | **+21 bps** | 1.40% | **80 ticks** |
 
-Reading it: when news moves the fair price, LPs lose ~44% less to stale-price arbitrage; when local flow pushes the
-price away from fair, NightShift halves the premium and pays LPs ~2× more; when witnesses go silent, it degrades to
-maximum protection instead of quoting a stale price. Quiet weekends cost traders almost nothing extra.
+Reading it: both closed-market designs clearly beat a static pool for LPs. Against Gapguard-style pricing, NightShift is
+a different trade-off, not a strict win. Gapguard-style LPs earn slightly more in S1–S3 (2–5 bps) because traders pay
+more. NightShift charges traders about 31% less on quiet and news weekends, since knowing the fair price means repair
+flow is not priced as drift from a stale close. When witnesses go silent, NightShift blocks more flow and halves the
+premium (80 vs 160 ticks), at a higher fee.
 
 </details>
 

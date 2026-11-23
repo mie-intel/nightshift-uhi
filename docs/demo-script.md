@@ -39,7 +39,7 @@ Target length **4:30** so you have slack. Speak slowly; it's fine to cut and re-
 
 > "NightShift fixes this with Reactive Network. A reactive contract watches the issuer on Ethereum Sepolia and a
 > sibling Uniswap pool on Base, needs fresh prices from at least two chains, smooths them, and pushes a fair price into
-> our pool — between trades, with no bot and no trusted signer. This table is read live from that contract: each
+> our pool — between trades, with no off-chain bot or signer relaying it. This table is read live from that contract: each
 > source, its chain, its weight, the price it saw, and whether it's fresh."
 
 ### 1:05 – 2:20 · Live: news on two chains → the pool and the vaults move with no trade
@@ -76,10 +76,10 @@ friendly "Blocked: this trade pushes the price too far…" message (when closed)
 ### 3:10 – 3:55 · Proof it works: tests + results
 **Show:** terminal: `make test` (cut to the summary line: *all tests passed*), then the README **Results** table.
 
-> "There are 160-plus tests, including a full weekend replay with every real contract. And the same order flow on a
-> static pool versus NightShift: on news weekends LPs lose 44% less to stale-price arbitrage; when local buyers push the
-> price away from fair, NightShift halves the premium and pays LPs twice as much; and if witnesses go silent it falls
-> back to maximum protection instead of trusting a stale price."
+> "There are 175 tests, including a full weekend replay with every real contract. We ran the same order flow on a static
+> pool, a Gapguard-style pool and NightShift. Both closed-market designs beat the static pool for LPs. Gapguard-style LPs
+> earn a few basis points more because traders pay more; NightShift charges traders about 31% less on quiet and news
+> weekends because it knows the fair price, and if witnesses go silent it halves the premium."
 
 ### 3:55 – 4:30 · Why it's different + close
 **Show:** README *What NightShift does* section or a simple slide.
