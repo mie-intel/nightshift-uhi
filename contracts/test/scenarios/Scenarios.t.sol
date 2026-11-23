@@ -72,6 +72,7 @@ contract ScenariosTest is HookFixture {
 
     /// @dev Swap toward `target`; if blocked, the trader halves the move and retries (up to 3 times).
     function _trade(PoolKey memory k, Metrics storage m, bool isNs, int24 target, int256 maxIn) internal {
+        vm.roll(block.number + 1); // each trader lands in its own block (the away cap is per block)
         int24 t = _tickOf(k.toId());
         int24 step = target - t;
         for (uint256 i; i < 4; i++) {

@@ -165,6 +165,7 @@ contract NightShiftVault is ERC20, ReentrancyGuard, IUnlockCallback, INightShift
             (amount0, amount1) = (amount0Max, amount1Max);
             shares = Math.sqrt(amount0 * amount1);
         } else {
+            _collect(); // accrued fees belong to existing holders: price the new shares with them included
             (uint256 t0, uint256 t1) = totals();
             uint256 s0 = t0 == 0 ? type(uint256).max : FullMath.mulDiv(amount0Max, supply, t0);
             uint256 s1 = t1 == 0 ? type(uint256).max : FullMath.mulDiv(amount1Max, supply, t1);
@@ -187,6 +188,7 @@ contract NightShiftVault is ERC20, ReentrancyGuard, IUnlockCallback, INightShift
     {
         uint256 supply = totalSupply();
         if (shares == 0 || shares > supply) revert InsufficientOutput();
+        _collect(); // move all accrued fees to idle first, so they are split pro-rata below
         uint256 b0 = _balance0();
         uint256 b1 = _balance1();
         if (liquidity > 0) {

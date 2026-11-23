@@ -38,6 +38,12 @@ contract NightShiftHook is BaseOverrideFee, INightShiftHook {
         uint64 lastRegimeSeq; // regime channel
     }
 
+    /// @dev Tick at the first capped-regime swap of a block (per-block away cap).
+    struct MoveWindow {
+        uint40 blockNumber;
+        int24 startTick;
+    }
+
     uint16 private constant MAX_RISK = 10_000;
     // transient slots: per-swap stash between beforeSwap and afterSwap = keccak256("nightshift.hook.<name>") - 1
     uint256 private constant T_TICK_BEFORE = 0x52712faf1c2a84b227ee359245ca57a8a04424e42578131f9e9cb1d8407200d2;
@@ -59,6 +65,8 @@ contract NightShiftHook is BaseOverrideFee, INightShiftHook {
     mapping(PoolId => PoolState) public poolState;
     /// @dev AnchorStale already emitted for the current stale period.
     mapping(PoolId => bool) internal _staleFlagged;
+    /// @dev Per-pool reference for the per-block away cap.
+    mapping(PoolId => MoveWindow) internal _moveWindow;
 
     /// @notice Caller is not the Controller.
     error NotController();
@@ -268,7 +276,6 @@ contract NightShiftHook is BaseOverrideFee, INightShiftHook {
     /// @dev Move caps (SPEC §9.3) using the per-swap stash written in beforeSwap.
     function _enforceMoveCaps(PoolId id, bool zeroForOne, int24 tickAfter)
         internal
-        view
         returns (int24 tickBefore, bool away)
     {
         uint16 riskUsed;
@@ -279,6 +286,13 @@ contract NightShiftHook is BaseOverrideFee, INightShiftHook {
         }
         PoolState storage s = poolState[id];
         FeeMath.checkMove(_config, s.regime, away, riskUsed, s.anchorTick, zeroForOne, tickBefore, tickAfter);
+        if (s.regime == Regime.OPEN) return (tickBefore, away);
+        MoveWindow storage w = _moveWindow[id];
+        if (w.blockNumber != block.number) {
+            w.blockNumber = uint40(block.number);
+            w.startTick = tickBefore;
+        }
+        if (away) FeeMath.checkBlockMove(_config, riskUsed, zeroForOne, w.startTick, tickAfter);
     }
 
     function _checkedSeq(PoolId id, uint64 seq) internal returns (PoolState storage s) {

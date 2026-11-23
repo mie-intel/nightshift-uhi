@@ -65,6 +65,17 @@ contract DebtProxy {
     }
 }
 
+/// @dev Counts close snapshots; other vault calls are not exercised by these tests.
+contract CountingVault {
+    uint256 public snapshots;
+
+    function snapshotClose(uint64) external {
+        snapshots++;
+    }
+
+    function reconcile(uint64, int24, bool) external {}
+}
+
 contract NightShiftControllerTest is Test {
     DebtProxy proxy;
     address reactive = makeAddr("reactive");
@@ -179,6 +190,32 @@ contract NightShiftControllerTest is Test {
         assertEq(uint8(hook.regimeOf(PoolId.wrap(POOL))), uint8(Regime.OPEN));
         vm.expectRevert(NightShiftController.ReconcileNotDue.selector);
         ctrl.forceReconcile(POOL);
+    }
+
+    /// @dev Regression: a Reactive close callback landing after `syncRegime` started a second epoch and re-snapshotted.
+    function test_lateCloseCallback_afterSync_keepsOneEpoch() public {
+        CountingVault v = new CountingVault();
+        ctrl.addVault(POOL, address(v));
+        vm.warp(_utc(2026, 11, 21, 12));
+        ctrl.syncRegime(POOL);
+        vm.warp(block.timestamp + 10 minutes);
+        vm.prank(address(proxy));
+        ctrl.onRegime(reactive, POOL, 1, uint8(Regime.CLOSED), uint40(block.timestamp));
+        assertEq(ctrl.epochOf(POOL), 1);
+        assertEq(v.snapshots(), 1);
+    }
+
+    function test_eachCloseStartsOneEpoch() public {
+        CountingVault v = new CountingVault();
+        ctrl.addVault(POOL, address(v));
+        vm.startPrank(address(proxy));
+        ctrl.onRegime(reactive, POOL, 1, uint8(Regime.CLOSED), 0);
+        ctrl.onRegime(reactive, POOL, 2, uint8(Regime.REOPEN_PENDING), 0);
+        ctrl.onReconcile(reactive, POOL, 3, 1, 0, 0, false);
+        ctrl.onRegime(reactive, POOL, 4, uint8(Regime.CLOSED), 0);
+        vm.stopPrank();
+        assertEq(ctrl.epochOf(POOL), 2);
+        assertEq(v.snapshots(), 2);
     }
 
     // ---------------------------------------------------------------- funding

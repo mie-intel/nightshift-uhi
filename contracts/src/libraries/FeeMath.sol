@@ -87,4 +87,19 @@ library FeeMath {
             if (past > int256(uint256(c.overshootCap))) revert Overshoot();
         }
     }
+
+    /// @notice Apply the away cap to the net move since the block's first swap, so splitting can't bypass it.
+    /// @dev Only movement in the swap's direction counts: undoing an earlier repair in the block is not penalized.
+    function checkBlockMove(
+        PoolConfig memory c,
+        uint16 riskUsed,
+        bool zeroForOne,
+        int24 blockStartTick,
+        int24 tickAfter
+    ) internal pure {
+        int256 m = zeroForOne ? int256(blockStartTick) - tickAfter : int256(tickAfter) - blockStartTick;
+        if (m > 0 && uint256(m) * 20_000 > uint256(c.maxAwayMove) * (20_000 - uint256(riskUsed))) {
+            revert AwayMoveTooLarge();
+        }
+    }
 }

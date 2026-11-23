@@ -121,6 +121,43 @@ contract NightShiftVaultTest is HookFixture {
         assertApproxEqRel(o1, 10e18, 1e15);
     }
 
+    /// @dev Regression: withdraw used to hand the whole position's accrued fees to whoever withdrew first.
+    function test_withdraw_smallHolder_cannotTakeAccruedFees() public {
+        vm.prank(alice);
+        vault.deposit(1e23, 1e23, 0, alice);
+        _earnFees();
+        address bob = makeAddr("bob");
+        _fund(bob);
+        (uint256 b0, uint256 b1) = _bal(bob);
+        vm.startPrank(bob);
+        (uint256 s,,) = vault.deposit(1e18, 1e18, 0, bob);
+        vault.withdraw(s, 0, 0, bob);
+        vm.stopPrank();
+        (uint256 c0, uint256 c1) = _bal(bob);
+        assertLe(c0 + c1, b0 + b1, "deposit + withdraw earns nothing");
+    }
+
+    function test_withdraw_accruedFees_splitProRata() public {
+        vault.deposit(1e23, 1e23, 0, address(this));
+        vm.prank(alice);
+        (uint256 s,,) = vault.deposit(1e23, 1e23, 0, alice);
+        _earnFees();
+        vm.prank(alice);
+        (uint256 a0, uint256 a1) = vault.withdraw(s, 0, 0, alice);
+        (uint256 o0, uint256 o1) = vault.withdraw(vault.balanceOf(address(this)), 0, 0, address(this));
+        assertGt(a0 + a1, 2e23, "fees earned");
+        assertApproxEqRel(a0 + a1, o0 + o1, 1e12, "equal holders get equal value");
+    }
+
+    function _earnFees() internal {
+        _anchor(0, 0);
+        vault.rebalance(0, 0, Regime.CLOSED);
+        for (uint256 i; i < 6; i++) {
+            _swapTo(false, 15);
+            _swapTo(true, -15);
+        }
+    }
+
     function test_withdraw_slippageGuard() public {
         (uint256 s,,) = vault.deposit(1e18, 1e18, 0, address(this));
         vm.expectRevert(NightShiftVault.InsufficientOutput.selector);

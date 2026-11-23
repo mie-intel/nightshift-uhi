@@ -136,10 +136,12 @@ contract NightShiftController is AbstractCallback, INightShiftController {
         onlyServiceProvider
         onlyCallbackSender(reactive)
     {
+        Regime previous = hook.regimeOf(PoolId.wrap(poolId));
         hook.setRegime(PoolId.wrap(poolId), Regime(regime), seq);
         _trackReopen(poolId, Regime(regime));
         emit RegimeRelayed(poolId, seq, regime, effectiveAt);
-        if (Regime(regime) == Regime.CLOSED) _startEpoch(poolId);
+        // `syncRegime` may have closed the pool already: one close = one epoch = one snapshot
+        if (Regime(regime) == Regime.CLOSED && previous != Regime.CLOSED) _startEpoch(poolId);
     }
 
     /// @inheritdoc INightShiftController

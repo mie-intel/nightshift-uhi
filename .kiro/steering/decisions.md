@@ -135,3 +135,12 @@ inclusion: manual
   4. **Scenarios** (`test/scenarios/Scenarios.t.sol`): static 0.30% pool vs NightShift in one PoolManager, identical LP (±1200 ticks) and order flow; traders halve and retry when blocked; reopen arbitrage before measuring LP PnL vs HODL. S1/S2/S3/S5 → `docs/recordings/scenarios.csv`. S6 (manipulated sibling) is covered by reactive unit tests. Gapguard-style control pool not built.
   5. **README.md = submission front page** (built integrations only, file links, honest scope); the full spec moved to `docs/SPEC.md` and references became "SPEC §N". Demo/video guide in `docs/demo-script.md`, form + progress-update texts in `docs/submission.md`.
 - **Consequences:** Redeploy of destination (hook/controller/vaults) + a new reactive contract required (controller is pinned in the hook; reactive pins the pool id).
+
+## ADR-019 Pre-submission fixes: vault fees, single epoch per close, per-block away cap
+- **Date:** 2026-11-23 · **Status:** Accepted
+- **Context:** Review proved three bugs with PoCs: a tiny holder could take nearly all accrued vault fees via deposit + withdraw; `syncRegime` followed by the late Reactive close callback started a second epoch and overwrote the HODL snapshot; splitting an away move into small swaps bypassed the per-swap cap (SPEC §9.3).
+- **Decision:**
+  1. Vault `deposit` and `withdraw` collect accrued fees to idle before pricing shares or paying out.
+  2. Controller starts an epoch on `onRegime(CLOSED)` only if the pool was not already CLOSED.
+  3. Hook keeps the per-swap cap and adds the same cap on net movement since the block's first swap, in the swap's direction. Stored in regular storage (transient storage would reset per transaction).
+- **Consequences:** The cap limits movement per block, not per weekend: a patient trader can still move the price across blocks, paying the rising away fee each time. After a repair that crosses the anchor, an away swap in the same block can be rejected until the next block (conservative). Scenario traders now land in separate blocks; scenario results are unchanged. Live contracts keep the old behavior until the redeploy.

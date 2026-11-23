@@ -215,6 +215,32 @@ contract NightShiftHookTest is HookFixture {
         _swapTo(false, cap + int24(cfg.maxAwayMove / 2) + 1);
     }
 
+    /// @dev Regression: splitting an away move into small swaps in one block used to bypass the cap.
+    function test_closed_awaySplitInOneBlock_reverts() public {
+        _setAnchor(0, 0);
+        _swapTo(false, 15);
+        _swapTo(false, 55);
+        _swapTo(false, 90);
+        vm.expectRevert(_wrapped(IHooks.afterSwap.selector, FeeMath.AwayMoveTooLarge.selector));
+        _swapTo(false, 130);
+    }
+
+    function test_closed_awayCapResetsNextBlock() public {
+        _setAnchor(0, 0);
+        _swapTo(false, 15);
+        _swapTo(false, 55);
+        _swapTo(false, 90);
+        vm.roll(block.number + 1);
+        _swapTo(false, 130);
+    }
+
+    /// @dev A repair earlier in the block must not count against a later away swap.
+    function test_closed_awayAfterRepair_sameBlock_allowed() public {
+        _setAnchor(-500, 0);
+        _swapTo(true, -400);
+        _swapTo(false, -320);
+    }
+
     function test_open_noMoveCaps() public {
         _setRegime(Regime.OPEN);
         _setAnchor(-200, 0);
