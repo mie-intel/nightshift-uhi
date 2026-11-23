@@ -172,6 +172,14 @@
       "chainId": 5318007
     }
   },
+  "gapguardControl": {
+    "_note": "Scenario baseline: the values in Gapguard's script/Deploy.s.sol (Bytethebuilder, MIT). Its 15% hook skim is not modeled, so LPs keep the whole surcharge, which favors the baseline.",
+    "baseFee": 3000,
+    "closedSurcharge": 2000,
+    "driftCoefficient": 20,
+    "maxDriftSurcharge": 45000,
+    "maxClosedMoveTicks": 100
+  },
   "demo": {
     "_note": "Demo tokens only (README \u00a74.4). issuerPrice = raw dUSD per 1e18 raw dSTOCK (100e6 = 100 dUSD). Same decimals on every chain -> offsetTicks 0.",
     "stockDecimals": 18,

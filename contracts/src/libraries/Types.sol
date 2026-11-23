@@ -40,6 +40,15 @@ struct PoolConfig {
     uint32 anchorMaxAgeClosed; // seconds
 }
 
+/// @notice Fee parameters of the Gapguard-style control pool (scenario baseline only). Pips and ticks.
+struct ControlFeeParams {
+    uint24 baseFee;
+    uint24 closedSurcharge;
+    uint24 driftCoefficient;
+    uint24 maxDriftSurcharge;
+    uint24 maxClosedMoveTicks;
+}
+
 /// @notice Gap Risk Score parameters (SPEC §8.1). Weights in bps, must sum to 10 000.
 struct RiskParams {
     uint32 timeFullSeconds;

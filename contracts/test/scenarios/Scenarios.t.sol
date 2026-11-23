@@ -11,11 +11,15 @@ import {PoolSwapTest} from "@uniswap/v4-core/src/test/PoolSwapTest.sol";
 import {StateLibrary} from "@uniswap/v4-core/src/libraries/StateLibrary.sol";
 import {TickMath} from "@uniswap/v4-core/src/libraries/TickMath.sol";
 import {FullMath} from "@uniswap/v4-core/src/libraries/FullMath.sol";
+import {Hooks} from "@uniswap/v4-core/src/libraries/Hooks.sol";
+import {LPFeeLibrary} from "@uniswap/v4-core/src/libraries/LPFeeLibrary.sol";
 
 import {HookFixture} from "../utils/HookFixture.sol";
+import {ControlClosedSurchargeHook} from "../../src/mocks/ControlClosedSurchargeHook.sol";
 import {Regime} from "../../src/libraries/Types.sol";
+import {NightShiftConfig} from "../../script/utils/NightShiftConfig.sol";
 
-/// @title Scenario replays: static 0.30% pool vs NightShift pool, identical liquidity and identical order flow
+/// @title Scenario replays: static 0.30% pool vs Gapguard-style pool vs NightShift, identical liquidity and order flow
 ///        (SPEC §21.3). Market CLOSED all weekend; the reopen price is the witnessed fair price.
 /// @notice Metrics per pool: swaps filled / blocked, LP PnL vs HODL at the reopen price (fees included, bps),
 ///         average fee paid (bps), |pool tick − reopen tick| at the end. Rows appended to docs/recordings/scenarios.csv
@@ -23,6 +27,9 @@ import {Regime} from "../../src/libraries/Types.sol";
 contract ScenariosTest is HookFixture {
     PoolKey staticKey;
     PoolId staticId;
+    ControlClosedSurchargeHook control;
+    PoolKey controlKey;
+    PoolId controlId;
     uint64 seq;
     int256 constant L = 1e21;
 
@@ -40,6 +47,7 @@ contract ScenariosTest is HookFixture {
 
     Metrics ns;
     Metrics st;
+    Metrics gg;
 
     function setUp() public {
         _deployHookAndPool(_satNoon()); // NightShift pool (seeded by the fixture), regime CLOSED
@@ -48,8 +56,21 @@ contract ScenariosTest is HookFixture {
         // remove the fixture seed so both pools carry exactly the same measured LP position
         modifyLiquidityRouter.modifyLiquidity(key, ModifyLiquidityParams(-12_000, 12_000, -1e22, 0), ZERO_BYTES);
         (staticKey, staticId) = initPool(currency0, currency1, IHooks(address(0)), 3000, 60, SQRT_PRICE_1_1);
+        address at = address(
+            uint160(Hooks.AFTER_INITIALIZE_FLAG | Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG)
+                | (uint160(0x5555) << 144)
+        );
+        deployCodeTo(
+            "ControlClosedSurchargeHook.sol:ControlClosedSurchargeHook",
+            abi.encode(manager, NightShiftConfig.controlParams(NightShiftConfig.load("testnet"))),
+            at
+        );
+        control = ControlClosedSurchargeHook(at);
+        (controlKey, controlId) =
+            initPool(currency0, currency1, IHooks(at), LPFeeLibrary.DYNAMIC_FEE_FLAG, 60, SQRT_PRICE_1_1);
         _seed(key, ns);
         _seed(staticKey, st);
+        _seed(controlKey, gg);
     }
 
     // ---------------------------------------------------------------- plumbing
@@ -95,6 +116,8 @@ contract ScenariosTest is HookFixture {
             try hook.quoteFee(k, zfo) returns (uint24 f, bool) {
                 feeRate = f;
             } catch {}
+        } else if (address(k.hooks) == address(control)) {
+            feeRate = control.quoteFee(k, zfo);
         }
         try swapRouter.swap(
             k,
@@ -114,10 +137,11 @@ contract ScenariosTest is HookFixture {
 
     /// @dev Monday open: arbitrage snaps both pools to the reopen price (against the LPs), not counted as flow.
     function _reopenArb(int24 reopenTick) internal {
+        vm.warp(_monOpen());
         hook.setRegime(poolId, Regime.OPEN, ++seq);
         _anchor(reopenTick, 0);
-        PoolKey[2] memory ks = [key, staticKey];
-        for (uint256 i; i < 2; i++) {
+        PoolKey[3] memory ks = [key, staticKey, controlKey];
+        for (uint256 i; i < 3; i++) {
             int24 t = _tickOf(ks[i].toId());
             if (t == reopenTick) continue;
             swapRouter.swap(
@@ -132,6 +156,7 @@ contract ScenariosTest is HookFixture {
     function _both(int24 target, int256 maxIn) internal {
         _trade(key, ns, true, target, maxIn);
         _trade(staticKey, st, false, target, maxIn);
+        _trade(controlKey, gg, false, target, maxIn);
     }
 
     /// @dev LP PnL vs HODL at the reopen price, fees included, in bps of the HODL value.
@@ -151,10 +176,13 @@ contract ScenariosTest is HookFixture {
     function _report(string memory name, int24 reopenTick) internal {
         int256 gapNs = _abs(int256(_tickOf(poolId)) - reopenTick); // gap left for the reopen (before arbitrage)
         int256 gapSt = _abs(int256(_tickOf(staticId)) - reopenTick);
+        int256 gapGg = _abs(int256(_tickOf(controlId)) - reopenTick);
         _reopenArb(reopenTick);
         int256 pnlNs = _lpPnlBps(key, ns, reopenTick);
         int256 pnlSt = _lpPnlBps(staticKey, st, reopenTick);
+        int256 pnlGg = _lpPnlBps(controlKey, gg, reopenTick);
         _row(name, "static", st, pnlSt, gapSt);
+        _row(name, "gapguard", gg, pnlGg, gapGg);
         _row(name, "nightshift", ns, pnlNs, gapNs);
     }
 
@@ -179,7 +207,7 @@ contract ScenariosTest is HookFixture {
         );
         console.log(line);
         string memory path = string.concat(vm.projectRoot(), "/../docs/recordings/scenarios.csv");
-        if (vm.exists(path)) vm.writeLine(path, line);
+        if (vm.envOr("WRITE_SCENARIOS", false)) vm.writeLine(path, line); // only `make test-scenarios` writes
     }
 
     function _abs(int256 x) internal pure returns (int256) {
@@ -221,8 +249,10 @@ contract ScenariosTest is HookFixture {
         for (uint256 i; i < 12; i++) {
             int24 nsTarget = _tickOf(poolId) + 150; // each buyer wants +1.5%
             int24 stTarget = _tickOf(staticId) + 150;
+            int24 ggTarget = _tickOf(controlId) + 150;
             _trade(key, ns, true, nsTarget, 1e30);
             _trade(staticKey, st, false, stTarget, 1e30);
+            _trade(controlKey, gg, false, ggTarget, 1e30);
         }
         _report("S3_oneway", 0);
     }
@@ -233,8 +263,10 @@ contract ScenariosTest is HookFixture {
         for (uint256 i; i < 10; i++) {
             int24 nsTarget = _tickOf(poolId) + (i % 2 == 0 ? int24(80) : int24(-60));
             int24 stTarget = _tickOf(staticId) + (i % 2 == 0 ? int24(80) : int24(-60));
+            int24 ggTarget = _tickOf(controlId) + (i % 2 == 0 ? int24(80) : int24(-60));
             _trade(key, ns, true, nsTarget, 1e30);
             _trade(staticKey, st, false, stTarget, 1e30);
+            _trade(controlKey, gg, false, ggTarget, 1e30);
         }
         _report("S5_outage", 0);
     }
@@ -243,6 +275,8 @@ contract ScenariosTest is HookFixture {
     function test_seedsIdentical() public view {
         assertEq(ns.in0, st.in0);
         assertEq(ns.in1, st.in1);
+        assertEq(gg.in0, st.in0);
+        assertEq(gg.in1, st.in1);
         assertEq(uint8(hook.regimeOf(poolId)), uint8(Regime.CLOSED));
     }
 }

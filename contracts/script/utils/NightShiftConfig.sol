@@ -3,7 +3,15 @@ pragma solidity ^0.8.26;
 
 import {Vm} from "forge-std/Vm.sol";
 import {stdJson} from "forge-std/StdJson.sol";
-import {PoolConfig, RiskParams, QuorumParams, GasLimits, Mandate, RegimeMandate} from "../../src/libraries/Types.sol";
+import {
+    ControlFeeParams,
+    PoolConfig,
+    RiskParams,
+    QuorumParams,
+    GasLimits,
+    Mandate,
+    RegimeMandate
+} from "../../src/libraries/Types.sol";
 
 /// @title NightShiftConfig
 /// @notice Reads tunable parameters from `contracts/config/{network}.json` (rule: params never hard-coded).
@@ -16,6 +24,15 @@ library NightShiftConfig {
     /// @notice Raw JSON for `network` ("testnet" | "mainnet"). Path relative to the Foundry project root.
     function load(string memory network) internal view returns (string memory) {
         return vm.readFile(string.concat(vm.projectRoot(), "/config/", network, ".json"));
+    }
+
+    /// @notice Gapguard-style control pool parameters from the `gapguardControl` section.
+    function controlParams(string memory json) internal pure returns (ControlFeeParams memory p) {
+        p.baseFee = uint24(json.readUint(".gapguardControl.baseFee"));
+        p.closedSurcharge = uint24(json.readUint(".gapguardControl.closedSurcharge"));
+        p.driftCoefficient = uint24(json.readUint(".gapguardControl.driftCoefficient"));
+        p.maxDriftSurcharge = uint24(json.readUint(".gapguardControl.maxDriftSurcharge"));
+        p.maxClosedMoveTicks = uint24(json.readUint(".gapguardControl.maxClosedMoveTicks"));
     }
 
     /// @notice Hook fee policy from the `fee` section.
