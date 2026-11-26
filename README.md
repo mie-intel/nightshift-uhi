@@ -10,20 +10,33 @@ UHI11 Hookathon · theme **Active Management & Curated Liquidity** · partner in
 
 | | |
 |---|---|
-| Live dashboard | _Vercel URL — add after deploy_ |
-| Demo video | _add link_ |
-| Proof it runs on-chain | [`docs/recordings/e2e.md`](docs/recordings/e2e.md) (explorer links) |
+| Demo video (≤ 5 min) | _add link_ |
+| Live dashboard | https://nightshift-uhi.vercel.app (no wallet needed to view; or run locally: `make app`) |
+| Repository | https://github.com/mie-intel/nightshift-uhi — branch **`main`** |
+| Proof it runs on-chain | [`docs/recordings/e2e.md`](docs/recordings/e2e.md) (Etherscan → Reactscan → Basescan links) |
+
+### For judges
+
+| Requirement | Where |
+|---|---|
+| Valid Uniswap v4 hook | [`contracts/src/hook/NightShiftHook.sol`](contracts/src/hook/NightShiftHook.sol), deployed and verified on Base Sepolia (addresses under [More detail](#more-detail)) |
+| Partner integration + where in code | [Reactive Network](#partner-integration--reactive-network) |
+| Tests | 175 unit, fuzz and integration tests — `make test` ([run & test](#run--test)) |
+| Frontend that interacts with the hook | [`app/`](app/) — reads hook state and live fee quotes, swaps through the hook, vault deposits |
+| Built during the hookathon | All code in this repo, first commit 18 Nov 2026 |
+| Credits for outside ideas/code | [Credits](#credits) |
 
 ---
 
-## Description
+## The problem
 
 Tokenized US stocks trade on-chain 24/7, but the underlying trades only in NYSE hours. When NYSE is closed, the
 real price still moves — the issuer keeps minting and redeeming on one chain, sibling pools trade on another — but a
 Uniswap v4 pool **can't see other chains** and its hook **only runs when someone trades**. So the pool drifts from
-fair value: liquidity providers carry unpriced gap risk, pull liquidity on Friday, spreads widen, and volume leaves.
+fair value: liquidity providers carry unpriced gap risk, pull liquidity on Friday, spreads widen, and volume leaves
+Uniswap.
 
-NightShift keeps the market working at a fair price while it's closed:
+## How NightShift works
 
 1. **Witness quorum (Reactive Network).** `NightShiftReactive` subscribes to the issuer's mint/redeem events on
    Ethereum Sepolia and to a sibling Uniswap v4 pool on Base Sepolia (plus our own pool's swaps). It smooths each
@@ -39,7 +52,34 @@ NightShift keeps the market working at a fair price while it's closed:
    vault **re-centers its liquidity onto it with no trade**. At the reopen, each vault is scored **vs HODL at the
    witnessed open price**; curators earn a performance fee only on gains above their high-water mark.
 
-## Partner integration — Reactive Network (where it is in the code)
+```
+Ethereum Sepolia            Reactive Network (Lasna)              Base Sepolia
+MockIssuer.Minted ─┐        NightShiftReactive                    NightShiftController ──► NightShiftHook (v4 pool)
+                   ├──────► witnesses → EWMA → quorum (≥2 chains) │  onAnchor / onRegime / ├─► NightShiftVault × N
+Sibling v4 Swap ───┘        risk ratchet · Cron1000 regime ───────┘  onReconcile           (recenter, snapshot, score)
+(Base Sepolia)              requestCallbackV_1_0 ───── callback proxy ─┘
+```
+
+## How it compares to existing solutions
+
+| | Static pool | Gapguard-style closed-market hook | Maestro (UHI9) | **NightShift** |
+|---|---|---|---|---|
+| Knows the fair price while NYSE is closed | no | no — prices the drift from the last close | crypto feed, no market hours | **yes — quorum of witnesses on ≥ 2 chains** |
+| Updates the pool between trades | no | no | yes (Reactive) | **yes (Reactive)** |
+| Trades toward fair value (repair) | normal fee | base fee only if they move back to the **last close** — the new fair price is unknown | — | **served, pay part of the gap to LPs** |
+| Trades pushing away from fair value | normal fee | surcharge on drift from the last close + move cap | — | **risk-scaled fee + move cap** |
+| Liquidity management | none | none | one manager re-centers around a feed | **curator vaults, scored vs HODL at the reopen** |
+
+Measured in the scenario suite (same liquidity, same scripted order flow): both closed-market designs clearly beat a
+static pool for LPs. Gapguard-style LPs earn 2–5 bps more in quiet and news weekends because traders pay more;
+NightShift charges traders about **31% less** there and **halves the worst premium** when witnesses go silent. It is a
+different trade-off, not a strict win — full table under [More detail](#more-detail).
+
+## Partner integration — Reactive Network
+
+Reactive is the core of the design, not an add-on: the pool needs witness state from more than one chain, delivered
+between trades, with no off-chain relayer. Without Reactive this would be one bot per chain plus an aggregator plus a
+trusted signer. With Reactive, the cross-chain subscriptions, the quorum math and the callbacks all run on-chain.
 
 | What | Where |
 |---|---|
@@ -49,10 +89,27 @@ NightShift keeps the market working at a fair price while it's closed:
 | Local simulation of the Reactive loop used by tests | [`contracts/test/utils/ReactiveHarness.sol`](contracts/test/utils/ReactiveHarness.sol), [`contracts/src/mocks/MockSystemContract.sol`](contracts/src/mocks/MockSystemContract.sol) |
 | Live proof (Reactscan + Basescan + Etherscan links) | [`docs/recordings/e2e.md`](docs/recordings/e2e.md) |
 
-Uniswap v4: [`NightShiftHook.sol`](contracts/src/hook/NightShiftHook.sol) (OpenZeppelin `BaseOverrideFee`;
-`afterInitialize`, `beforeAddLiquidity`, `beforeSwap`, `afterSwap`; dynamic LP fee override; transient-storage swap
-stash), vaults in [`contracts/src/vault/`](contracts/src/vault/), pure math in
+No other partner integrations.
+
+## The Uniswap v4 hook
+
+[`NightShiftHook.sol`](contracts/src/hook/NightShiftHook.sol) extends OpenZeppelin `BaseOverrideFee`:
+
+- `afterInitialize` — requires a dynamic-fee pool.
+- `beforeSwap` — classifies the trade as toward/away from the anchor, returns the override LP fee, stashes the
+  pre-swap tick in transient storage.
+- `afterSwap` — enforces the away move cap and the overshoot cap.
+- `quoteFee` view for the dashboard and routers. State changes only through the Controller.
+
+Vaults: [`contracts/src/vault/`](contracts/src/vault/) · pure math and NYSE calendar:
 [`contracts/src/libraries/`](contracts/src/libraries/).
+
+## Frontend
+
+[`app/`](app/) — Vite + React dashboard on the live testnet deployment. Without a wallet it shows NYSE status, the
+pool regime, pool price vs fair price, gap risk, each witness and quorum, live fee quotes for buy/sell, the update
+timeline with explorer links, and the vault leaderboard. With a wallet: faucet for demo tokens, swaps through the hook
+(with friendly errors for the caps) and vault deposits/withdrawals.
 
 ## Run & test
 
@@ -61,15 +118,21 @@ git clone --recursive https://github.com/mie-intel/nightshift-uhi && cd nightshi
 make install && make build
 make test            # 175 unit, fuzz and integration tests (incl. a full simulated weekend)
 make test-scenarios  # static 0.30% pool vs Gapguard-style pool vs NightShift → docs/recordings/scenarios.csv
-make app             # dashboard (Vite + React) → http://localhost:5173 — live testnet state, swaps, vaults
+make app             # dashboard → http://localhost:5173 — live testnet state, swaps, vaults
 ```
+
+[`contracts/test/integration/WeekendLoop.t.sol`](contracts/test/integration/WeekendLoop.t.sol) replays a whole weekend
+with every real contract (Reactive simulated by the harness): Friday close → Saturday news on two chains → pool and
+vaults repriced with no trade → repair swap served, overshoot blocked → Monday open window → reconciliation vs HODL →
+OPEN.
 
 Demo "weekend news" on testnet: `make news PRICE=104000000` (issuer + sibling pool move to $104; needs a funded
 testnet key in `.env`, never committed). Full deploy: `make deploy-testnet`.
 
 ## Credits
 
-- **Gapguard** (Bytethebuilder, MIT) — closed-market fee ideas (away pricing at the midpoint of a full step).
+- **Gapguard** (Bytethebuilder, MIT) — closed-market fee ideas (away pricing at the midpoint of a full step); our
+  Gapguard-style baseline in the scenarios is modeled on it.
 - **Maestro** (UHI9) — Reactive-driven re-centering.
 - **Veritas** (UHI9) — idea of a Reactive-fed risk score that only ratchets up and feeds the swap fee.
 - **horsefacts/trading-days** (MIT) — NYSE calendar reference (our calendar is rewritten from the published NYSE rules).
@@ -78,36 +141,6 @@ testnet key in `.env`, never committed). Full deploy: `make deploy-testnet`.
 ---
 
 ## More detail
-
-<details>
-<summary><b>Why Reactive is essential</b></summary>
-
-The pool needs witness state from more than one chain, delivered between trades, with no off-chain relayer. Without
-Reactive this would be one bot per chain plus an aggregator plus a signer. With Reactive, the cross-chain subscription,
-the quorum math and the callback all run on-chain. In this testnet demo the witnesses themselves are not independent:
-the deployer runs `MockIssuer` and trades the sibling pool, which sits on the destination chain.
-
-</details>
-
-<details>
-<summary><b>Verify in 2 minutes (on-chain proof + tests)</b></summary>
-
-1. Open [`docs/recordings/e2e.md`](docs/recordings/e2e.md): an issuer trade on Ethereum Sepolia → a `react()` tx on
-   Lasna → the callback tx on Base Sepolia that set the pool's fair price, about 2–3 seconds end to end, no trade on
-   the pool.
-2. Run the tests:
-
-   ```bash
-   git clone --recursive https://github.com/mie-intel/nightshift-uhi && cd nightshift-uhi
-   make test            # 175 unit, fuzz and integration tests
-   make test-scenarios  # static vs Gapguard-style vs NightShift → docs/recordings/scenarios.csv
-   ```
-
-3. `contracts/test/integration/WeekendLoop.t.sol` replays a whole weekend with every real contract (Reactive simulated
-   by the harness): Friday close → Saturday news on two chains → pool and vault repriced with no trade → repair swap
-   served, overshoot blocked → Monday open window → reconciliation vs HODL → OPEN.
-
-</details>
 
 <details>
 <summary><b>Results — static 0.30% pool vs Gapguard-style pool vs NightShift (same liquidity, same order flow)</b></summary>
@@ -143,21 +176,13 @@ premium (80 vs 160 ticks), at a higher fee.
 <details>
 <summary><b>How it's built (auth, fallbacks, fees, vaults)</b></summary>
 
-```
-Ethereum Sepolia            Reactive Network (Lasna)              Base Sepolia
-MockIssuer.Minted ─┐        NightShiftReactive                    NightShiftController ──► NightShiftHook (v4 pool)
-                   ├──────► witnesses → EWMA → quorum (≥2 chains) │  onAnchor / onRegime / ├─► NightShiftVault × N
-Sibling v4 Swap ───┘        risk ratchet · Cron1000 regime ───────┘  onReconcile           (recenter, snapshot, score)
-(Base Sepolia)              requestCallbackV_1_0 ───── callback proxy ─┘
-```
-
 - **Callback auth:** both lib modifiers (`onlyServiceProvider` + `onlyCallbackSender`); the hook only accepts the
   Controller. Anchor and regime callbacks use separate monotonic `seq` channels (callbacks may arrive out of order).
 - **Fallbacks:** anyone can call `syncRegime` (NYSE calendar on the destination chain) or `forceReconcile` (after a
   timeout) if Reactive is late; the hook treats a stale anchor as maximum risk.
 - **Fees** (pips): toward = base + 30% of the gap; away = base + risk-scaled + drift at the midpoint of a full step
-  (splitting a trade is never cheaper); all capped at 5% (hard cap 10%). Away moves capped at 100 ticks per block, shrinking with
-  risk; toward trades may overshoot the anchor by at most 20 ticks.
+  (splitting a trade is never cheaper); all capped at 5% (hard cap 10%). Away moves capped at 100 ticks per block,
+  shrinking with risk; toward trades may overshoot the anchor by at most 20 ticks.
 - **Vaults:** in-kind pro-rata deposits/withdrawals (no price needed, no stale-NAV games), never swap; curators can't
   move funds or pick ticks; performance fee ≤ 20%, only above the high-water mark.
 - **Parameters** live in [`contracts/config/testnet.json`](contracts/config/testnet.json); addresses in
@@ -192,17 +217,13 @@ and on Sourcify (Lasna).
 <summary><b>Scope and limits</b></summary>
 
 - **Testnet only, demo tokens only** — not real securities. The issuer is `MockIssuer` (a stand-in for an issuer's
-  24/7 mint/redeem desk). Trades in the demo pool are scripted demo flow; the fair price comes from real on-chain events
-  on other chains, delivered by Reactive Network.
+  24/7 mint/redeem desk). Trades in the demo pool are scripted demo flow.
+- The fair price comes from real on-chain events on other chains, delivered by Reactive Network — but in this demo the
+  witnesses are not independent: the deployer runs `MockIssuer` and trades the sibling pool.
+- Regime changes follow a Cron1000 subscription (~17 min), so a regime switch can lag the bell by up to ~17 minutes;
+  anyone can call `syncRegime` to apply it sooner.
 - Vaults hold one concentrated position each. Curator mandates are fixed at deployment.
 - Unaudited hackathon code.
-
-</details>
-
-<details>
-<summary><b>Full design spec</b></summary>
-
-The complete design document is in [`docs/SPEC.md`](docs/SPEC.md); decisions are logged in [`.kiro/steering/decisions.md`](.kiro/steering/decisions.md).
 
 </details>
 
