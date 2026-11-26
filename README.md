@@ -10,7 +10,7 @@ UHI11 Hookathon · theme **Active Management & Curated Liquidity** · partner in
 
 | | |
 |---|---|
-| Demo video (≤ 5 min) | _add link_ |
+| Demo video (≤ 5 min) | [Google Drive](https://drive.google.com/drive/folders/1VK-aOpo94Y8lGEn3Xei9t9ze7sXidI2o?usp=sharing) |
 | Live dashboard | https://nightshift-uhi.vercel.app (no wallet needed to view; or run locally: `make app`) |
 | Repository | https://github.com/mie-intel/nightshift-uhi — branch **`main`** |
 | Proof it runs on-chain | [`docs/recordings/e2e.md`](docs/recordings/e2e.md) (Etherscan → Reactscan → Basescan links) |
